@@ -1,0 +1,1126 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Australia's Hidden Wings</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Vega and Vega-Lite libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+    <style>
+        /* ==========================================
+           HEADER BUTTERFLY
+           ========================================== */
+
+        header {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .header-butterfly {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            width: 185px;
+            height: auto;
+            opacity: 0.95;
+            pointer-events: none;
+            z-index: 1;
+            transform: rotate(-8deg);
+            filter: drop-shadow(
+                0 8px 15px rgba(0, 0, 0, 0.15)
+            );
+        }
+
+        header h1,
+        header h2,
+        header p {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ==========================================
+           EXISTING CHART CONTAINERS
+           ========================================== */
+
+        .streamgraph-container,
+        .sankey-container,
+        .sunburst-container,
+        .rainfall-comparison-container {
+            width: 100%;
+            padding: 12px 0;
+            overflow-x: auto;
+        }
+
+        .sunburst-container,
+        .rainfall-comparison-container {
+            text-align: center;
+        }
+
+        .sunburst-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ==========================================
+           DECORATIVE SIDE INSECTS
+           ========================================== */
+
+        .side-insects {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .side-insect {
+            position: absolute;
+            display: block;
+            width: 140px;
+            height: auto;
+            max-height: 180px;
+            object-fit: contain;
+            opacity: 0.94;
+
+            filter:
+                drop-shadow(
+                    0 14px 20px rgba(23, 61, 50, 0.18)
+                )
+                drop-shadow(
+                    0 3px 5px rgba(23, 61, 50, 0.12)
+                );
+        }
+
+        /* Butterfly: upper-left side */
+
+        .insect-left-top {
+            left: 16px;
+            top: 22%;
+            width: 145px;
+            transform: rotate(-15deg);
+        }
+
+        /* Dragonfly: right side */
+
+        .insect-right-mid {
+            right: 12px;
+            top: 43%;
+            width: 155px;
+            transform: rotate(12deg);
+        }
+
+        /* Beetle: lower-left side */
+
+        .insect-left-bottom {
+            left: 22px;
+            bottom: 10%;
+            width: 125px;
+            transform: rotate(8deg);
+        }
+
+        /* Main content stays above the decorations */
+
+        header,
+        main,
+        footer {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Gentle floating effect */
+
+        @keyframes insectFloat {
+            0%, 100% {
+                translate: 0 0;
+            }
+
+            50% {
+                translate: 0 -10px;
+            }
+        }
+
+        .insect-left-top {
+            animation: insectFloat 6s ease-in-out infinite;
+        }
+
+        .insect-right-mid {
+            animation: insectFloat 7s ease-in-out infinite;
+            animation-delay: -2s;
+        }
+
+        .insect-left-bottom {
+            animation: insectFloat 8s ease-in-out infinite;
+            animation-delay: -4s;
+        }
+
+        /* Smaller screens: avoid overlapping charts */
+
+        @media (max-width: 1350px) {
+            .side-insect {
+                opacity: 0.75;
+            }
+
+            .insect-left-top {
+                left: 2px;
+                width: 100px;
+            }
+
+            .insect-right-mid {
+                right: 2px;
+                width: 105px;
+            }
+
+            .insect-left-bottom {
+                left: 2px;
+                width: 90px;
+            }
+        }
+
+        @media (max-width: 1050px) {
+            .side-insects {
+                display: none;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .header-butterfly {
+                width: 125px;
+                top: 12px;
+                right: 12px;
+                opacity: 0.8;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-butterfly {
+                width: 80px;
+                top: 8px;
+                right: 8px;
+                opacity: 0.55;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .side-insect {
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ======================================
+         DECORATIVE SIDE INSECTS
+         ====================================== -->
+
+    <div class="side-insects" aria-hidden="true">
+
+        <img
+            src="images/butterfly-side.png"
+            alt=""
+            class="side-insect insect-left-top"
+        >
+
+        <img
+            src="images/dragonfly-side.png"
+            alt=""
+            class="side-insect insect-right-mid"
+        >
+
+        <img
+            src="images/beetle-side.png"
+            alt=""
+            class="side-insect insect-left-bottom"
+        >
+
+    </div>
+
+
+    <!-- WEBSITE HEADER -->
+    <header>
+
+        <img
+            src="images/butterfly.png"
+            alt=""
+            class="header-butterfly"
+            aria-hidden="true"
+        >
+
+        <h1>Australia's Hidden Wings</h1>
+        <h2>Exploring Australian Insect Diversity</h2>
+
+        <p>
+            Australia is home to an amazing variety of insects.
+            Explore where insects are recorded, how sightings
+            change throughout the year, how rainfall compares
+            with these patterns, and which Australian insects
+            are at risk of disappearing.
+        </p>
+
+    </header>
+
+
+    <main>
+
+        <!-- ======================================
+             CHAPTER 1: INSECT GROUPS + SUNBURST
+             ====================================== -->
+
+        <section class="chart-section">
+
+            <h2>Chapter 1: Meet Australia's Insects</h2>
+
+            <p>
+                From colourful butterflies to native bees
+                and dragonflies, insects play important
+                roles in Australia's ecosystems.
+            </p>
+
+            <p>
+                Let's begin by looking at three major
+                insect groups: butterflies and moths,
+                bees, ants and wasps, and dragonflies
+                and damselflies.
+            </p>
+
+            <h3>Which Insects Are Recorded Most Often?</h3>
+
+            <p>
+                This chart compares the number of insect
+                sightings recorded between 2023 and 2025.
+            </p>
+
+            <div id="insect_bar_chart"></div>
+
+            <p class="chart-note">
+                Source: Atlas of Living Australia (2023–2025).
+                These counts represent recorded sightings,
+                not the actual number of insects in Australia.
+            </p>
+
+            <h3>What Does This Tell Us?</h3>
+
+            <p>
+                Butterflies and moths have the most recorded
+                sightings among these three insect groups.
+                However, this does not necessarily mean
+                they are the most common insects in nature.
+            </p>
+
+            <h3>Explore Australia's Insect Family Tree</h3>
+
+            <p>
+                The bar chart shows which insects have the
+                most recorded sightings. But insect diversity
+                is about much more than observation totals.
+            </p>
+
+            <p>
+                Insects belong to different groups,
+                and each group contains smaller scientific
+                families. Understanding these families
+                helps us appreciate the variety of
+                Australia's insect life.
+            </p>
+
+            <h3>How Are Australia's Insects Organised?</h3>
+
+            <p>
+                This circular diagram is a
+                <strong>sunburst chart</strong>.
+                Think of it as a family tree for insects.
+            </p>
+
+            <p>
+                The <strong>inner ring</strong> shows
+                butterflies and moths, beetles,
+                bees, ants and wasps, and dragonflies
+                and damselflies.
+            </p>
+
+            <p>
+                The <strong>outer ring</strong> divides
+                each group into scientific families.
+                Larger sections contain more species-level
+                entries in the checklist.
+            </p>
+
+            <p>
+                <strong>Try it:</strong>
+                Hover over any section to discover
+                its group or family name and count.
+            </p>
+
+            <div class="sunburst-container">
+                <div id="insect_sunburst"></div>
+            </div>
+
+            <p class="chart-note">
+                Source: Atlas of Living Australia insect
+                checklist, downloaded 10 October 2026.
+
+                The original checklist CSV is loaded
+                directly into Vega.
+
+                The chart shows checklist composition,
+                not insect abundance in nature.
+            </p>
+
+            <h3>What Does This Family Tree Reveal?</h3>
+
+            <p>
+                Each major insect group contains many
+                smaller families. Insect diversity
+                cannot be understood only by comparing
+                how often people record different insects.
+            </p>
+
+            <p>
+                Now that we have explored these groups,
+                where across Australia are insects
+                being recorded?
+            </p>
+
+        </section>
+
+
+        <!-- ======================================
+             CHAPTER 2: TWO GEOGRAPHIC MAPS
+             ====================================== -->
+
+        <section class="chart-section map-comparison-section">
+
+            <h2>Chapter 2: Where Are Australia's Insects Recorded?</h2>
+
+            <p>
+                Australia's landscapes include tropical
+                rainforests, dry deserts, coastal areas,
+                and temperate forests.
+            </p>
+
+            <p>
+                Insect sightings are not spread evenly
+                across the country. Compare the two maps
+                below to see the difference between
+                state totals and individual sighting locations.
+            </p>
+
+            <div class="two-chart-grid">
+
+                <article class="chart-card">
+
+                    <h3>Which States Have More Sightings?</h3>
+
+                    <p>
+                        Darker green states have more recorded
+                        insect sightings. Hover over a state
+                        to see its total.
+                    </p>
+
+                    <div class="map-frame" id="insect_map"></div>
+
+                    <p class="chart-note">
+                        Source: Atlas of Living Australia
+                        (2023–2025). Combined observations
+                        from three insect groups.
+                    </p>
+
+                </article>
+
+                <article class="chart-card">
+
+                    <h3>Where Were Insects Spotted?</h3>
+
+                    <p>
+                        Each coloured dot represents a sampled
+                        insect sighting. Different colours
+                        represent different insect groups.
+                    </p>
+
+                    <div class="map-frame" id="insect_point_map"></div>
+
+                    <p class="chart-note">
+                        Source: Atlas of Living Australia
+                        (2023–2025). Balanced sample of
+                        5,850 observations. Dot density
+                        is not insect population density.
+                    </p>
+
+                </article>
+
+            </div>
+
+            <div class="story-insight">
+
+                <h3>What Do These Maps Reveal?</h3>
+
+                <p>
+                    Queensland has the highest number
+                    of insect sightings in this dataset.
+                    The point map also shows many records
+                    around Australia's coastal areas.
+                </p>
+
+                <p>
+                    Areas with fewer sightings may simply
+                    have fewer people recording insects.
+                    The maps show where insects were observed,
+                    not necessarily where the most insects live.
+                </p>
+
+            </div>
+
+            <p>
+                We have explored where insects are recorded
+                across Australia. Next, let's investigate
+                how their sightings change throughout the year.
+            </p>
+
+        </section>
+
+
+        <!-- ======================================
+             CHAPTER 3: SEASONAL HEATMAP
+             ====================================== -->
+
+        <section class="chart-section">
+
+            <h2>Chapter 3: Insects Through the Seasons</h2>
+
+            <p>
+                Australia's seasons bring changes in
+                temperature, rainfall, and environmental
+                conditions that can affect insect activity.
+            </p>
+
+            <p>
+                This heatmap compares monthly sightings
+                for four insect groups between 2023 and 2025.
+            </p>
+
+            <h3>Which Months Have the Most Insect Sightings?</h3>
+
+            <p>
+                Each coloured cell represents one insect
+                group in one month. Darker colours
+                mean more recorded sightings.
+            </p>
+
+            <div id="insect_seasonal_heatmap"></div>
+
+            <p class="chart-note">
+                Source: Atlas of Living Australia monthly
+                summary (2023–2025). Includes butterflies
+                and moths, bees, ants and wasps, dragonflies
+                and damselflies, and beetles.
+
+                Counts show recorded observations,
+                not actual insect abundance.
+            </p>
+
+            <h3>What Do Seasonal Patterns Tell Us?</h3>
+
+            <p>
+                Some months have more recorded sightings
+                than others. Butterflies and moths show
+                particularly high totals in several
+                months in this dataset.
+            </p>
+
+            <p>
+                However, seasonal patterns can be
+                influenced by weather, insect activity,
+                and the number of people submitting
+                observations.
+            </p>
+
+            <p>
+                We've seen when insects are recorded
+                most often. Could rainfall help us
+                understand these seasonal patterns?
+            </p>
+
+        </section>
+
+
+        <!-- ======================================
+             CHAPTER 4: RAINFALL + COMPARISON
+             ====================================== -->
+
+        <section class="chart-section">
+
+            <h2>Chapter 4: Rainfall and Australia's Insects</h2>
+
+            <p>
+                Rainfall is an important part of Australia's
+                environment. It can affect plant growth,
+                insect habitats, and the conditions in
+                which insects live.
+            </p>
+
+            <p>
+                But do wetter months also have more
+                recorded insect sightings?
+            </p>
+
+            <h3>Do Rainfall and Insect Sightings Follow Similar Patterns?</h3>
+
+            <p>
+                This radar chart compares average monthly
+                rainfall across Australia with insect
+                sightings recorded between 2023 and 2025.
+            </p>
+
+            <p>
+                Each point around the circle represents
+                a month from January to December.
+                Blue represents rainfall, while green
+                represents insect sightings.
+            </p>
+
+            <div id="insect_rainfall_chart"></div>
+
+            <p class="chart-note">
+                Sources: Australian Bureau of Meteorology
+                (BOM) and Atlas of Living Australia (ALA),
+                2023–2025.
+
+                Rainfall represents the average for each
+                calendar month over the three years.
+                Insect sightings are combined across
+                the same period.
+
+                Both are shown as a percentage of their
+                own highest month (100%) to compare
+                seasonal patterns rather than raw totals.
+            </p>
+
+            <h3>What Does This Comparison Reveal?</h3>
+
+            <p>
+                Rainfall and insect sightings both change
+                throughout the year, but their busiest
+                months do not always match.
+            </p>
+
+            <p>
+                This comparison does not prove that rainfall
+                causes changes in insect sightings.
+                Temperature, habitat, insect behaviour
+                and observation effort also matter.
+            </p>
+
+
+            <h3>Are More Insects Recorded During Wetter Months?</h3>
+
+            <p>
+                The radar chart shows <em>when</em> rainfall
+                and insect sightings change. But do all
+                insect groups show the same difference
+                between wetter and drier months?
+            </p>
+
+            <p>
+                To explore this, we ranked Australia's
+                calendar months by their average rainfall
+                between 2023 and 2025.
+            </p>
+
+            <p>
+                The six wetter months were
+                <strong>January, February, March, April,
+                November and December</strong>.
+                The remaining six months were classified
+                as drier months.
+            </p>
+
+            <p>
+                The diagram below compares recorded
+                sightings between these two sets of
+                months for each insect group.
+            </p>
+
+            <p>
+                <strong>How to read it:</strong>
+                Gold dots represent drier months and
+                green dots represent wetter months.
+                A value of 100% means the group's
+                average monthly number of sightings.
+            </p>
+
+            <p>
+                Values above 100% mean more records
+                than that group's average month;
+                values below 100% mean fewer.
+                Hover over a dot for the exact
+                average number of records.
+            </p>
+
+            <div class="rainfall-comparison-container">
+                <div id="insect_rainfall_wet_dry"></div>
+            </div>
+
+            <p class="chart-note">
+                Sources: Australian Bureau of Meteorology,
+                Australian rainfall monthly records
+                (2023–2025), and Atlas of Living Australia,
+                monthly insect observations (2023–2025).
+
+                Both original CSV files are loaded directly
+                by Vega. Wetter and drier calendar months
+                are identified from the three-year average
+                national rainfall.
+
+                Insect observation values combine records
+                from 2023–2025 for each calendar month.
+                Each insect group is indexed against
+                its own twelve-month average.
+
+                Differences represent patterns in
+                records, not measured population changes.
+                The chart does not establish causation.
+            </p>
+
+            <h3>What Do Wetter and Drier Months Reveal?</h3>
+
+            <p>
+                All four insect groups have more recorded
+                sightings in the six wetter calendar months
+                than in the six drier months in this dataset.
+            </p>
+
+            <p>
+                The size of the difference varies between
+                insect groups. Beetles and dragonflies
+                and damselflies show particularly large
+                relative differences.
+            </p>
+
+            <p>
+                However, wetter months also overlap
+                with warmer times of year in much of
+                Australia. The differences could reflect
+                season, insect activity or the number
+                of people recording insects, rather
+                than rainfall alone.
+            </p>
+
+            <p>
+                We've compared seasonal conditions.
+                But what happens when we look at
+                insect observation records across
+                more than four decades?
+            </p>
+
+        </section>
+
+
+        <!-- ======================================
+             CHAPTER 5: HISTORICAL STREAMGRAPH
+             ====================================== -->
+
+        <section class="chart-section">
+
+            <h2>Chapter 5: Four Decades of Insect Observations</h2>
+
+            <p>
+                Australia's biodiversity records provide
+                a window into how insects have been
+                documented over time.
+            </p>
+
+            <p>
+                The Atlas of Living Australia brings
+                together observations from researchers,
+                museums and community contributors.
+                These records allow us to explore
+                long-term patterns across insect groups.
+            </p>
+
+            <h3>How Have Australian Insect Records Changed Since 1980?</h3>
+
+            <p>
+                This streamgraph shows annual recorded
+                observations from 1980 to 2025 for
+                butterflies and moths, bees, ants and
+                wasps, dragonflies and damselflies,
+                and beetles.
+            </p>
+
+            <p>
+                Each coloured flowing band represents
+                one insect group. The thicker the band,
+                the more observation records were
+                reported for that group in that year.
+            </p>
+
+            <div class="streamgraph-container">
+                <div id="insect_streamgraph"></div>
+            </div>
+
+            <p class="chart-note">
+                Source: Atlas of Living Australia (ALA),
+                official annual occurrence-count API,
+                1980–2025.
+
+                Four original ALA JSON responses are
+                loaded directly by Vega.
+
+                Records are filtered to Australia
+                and the four selected insect orders.
+                Counts represent biodiversity records,
+                not estimated insect populations.
+            </p>
+
+            <h3>What Do the Historical Patterns Reveal?</h3>
+
+            <p>
+                The number of recorded insect observations
+                has increased considerably in recent
+                decades, particularly for butterflies
+                and moths.
+            </p>
+
+            <p>
+                However, an increase in observation
+                records does not necessarily mean that
+                insect populations have increased.
+                Changes in survey effort, digital
+                databases and citizen science
+                participation may also influence
+                the number of records collected.
+            </p>
+
+            <p>
+                Next, let's explore insect life in
+                Melbourne's urban green spaces.
+            </p>
+
+        </section>
+
+
+        <!-- ======================================
+             CHAPTER 6: MELBOURNE SANKEY
+             ====================================== -->
+
+        <section class="chart-section">
+
+            <h2>Chapter 6: Inside Melbourne's Green Spaces</h2>
+
+            <p>
+                Insects are an important part of urban
+                ecosystems, including parks, gardens
+                and other green spaces.
+            </p>
+
+            <p>
+                The City of Melbourne's
+                <em>Little Things that Run the City</em>
+                dataset provides a closer look at
+                insects surveyed across Melbourne.
+            </p>
+
+            <h3>
+                Which Insect Groups Are Found
+                Across Melbourne's Green Spaces?
+            </h3>
+
+            <p>
+                This Sankey diagram connects insect
+                groups to the Melbourne locations
+                where their records were collected.
+            </p>
+
+            <p>
+                The coloured bands represent beetles,
+                flies, true bugs, and bees, ants
+                and wasps.
+            </p>
+
+            <p>
+                <strong>How to read the diagram:</strong>
+                Follow a coloured band from an insect
+                group on the left to a location on the
+                right. Thicker bands represent more
+                records linking that group to that place.
+            </p>
+
+            <div class="sankey-container">
+                <div id="melbourne_insect_sankey"></div>
+            </div>
+
+            <p class="chart-note">
+                Source: City of Melbourne,
+                Insect Records in the City of Melbourne
+                from Little Things that Run the City.
+
+                The visualisation loads the original
+                CSV file directly into Vega and
+                calculates relationships in memory.
+
+                The bands show numbers of survey records,
+                not total insect populations or
+                estimates of insect abundance.
+            </p>
+
+            <h3>What Does This Reveal?</h3>
+
+            <p>
+                This diagram allows us to compare
+                the relationships between insect groups
+                and individual Melbourne green spaces.
+                Different locations contribute
+                different combinations of records.
+            </p>
+
+            <p>
+                Differences may reflect survey methods,
+                habitat characteristics and sampling
+                effort. They do not necessarily mean
+                a park has more or fewer insects
+                living there.
+            </p>
+
+            <p>
+                Urban insect communities are one part
+                of Australia's wider biodiversity.
+                Next, let's look at the insects
+                officially recognised as threatened.
+            </p>
+
+        </section>
+
+
+        <!-- ======================================
+             CHAPTER 7: THREATENED INSECT MAP
+             ====================================== -->
+
+        <section class="chart-section">
+
+            <h2>
+                Chapter 7: Where Are Australia's
+                Threatened Insects Listed?
+            </h2>
+
+            <p>
+                Australia's insects face pressures such as
+                habitat loss and environmental change.
+                Some insects are officially recognised
+                as threatened under Australian
+                environmental legislation.
+            </p>
+
+            <p>
+                By examining government conservation records,
+                we can compare the number of threatened insect
+                taxa associated with different Australian
+                states and territories.
+            </p>
+
+            <h3>
+                Which States Have More Listed
+                Threatened Insects?
+            </h3>
+
+            <p>
+                This proportional-symbol map uses circles
+                to compare government-listed threatened
+                insect taxa across Australia.
+                Larger circles indicate more listed taxa
+                associated with a state or territory.
+            </p>
+
+            <div id="insect_threatened_map"></div>
+
+            <p class="chart-note">
+                Source: Australian Government Species Profile
+                and Threats Database (SPRAT),
+                extracted 28 August 2026.
+
+                The map includes records classified as
+                Insecta and counts distinct scientific-name
+                entries marked "Yes" for each state
+                or territory in the source dataset.
+
+                Circle locations are representative
+                state positions, not actual insect
+                observation coordinates.
+
+                Counts represent government-listed taxa,
+                not insect populations. A taxon can be
+                associated with more than one state.
+            </p>
+
+            <h3>Why Are These Geographic Differences Important?</h3>
+
+            <p>
+                Threatened insects are associated with
+                different regions across Australia.
+                Their conservation depends on understanding
+                the environmental pressures affecting
+                species and the places they inhabit.
+            </p>
+
+            <p>
+                However, the number of listed taxa in a
+                state does not tell us how many insects
+                live there or whether that state has
+                greater overall biodiversity.
+            </p>
+
+            <p>
+                The map only represents records contained
+                in the SPRAT extract, and states without
+                an explicit "Yes" are not necessarily
+                places where the taxa are absent.
+            </p>
+
+            <p>
+                Having explored where threatened insects
+                are listed, we can now examine how serious
+                their official conservation statuses are.
+            </p>
+
+        </section>
+
+
+        <!-- ======================================
+             CHAPTER 8: CONSERVATION
+             ====================================== -->
+
+        <section class="chart-section">
+
+            <h2>Chapter 8: Which Australian Insects Are at Risk?</h2>
+
+            <p>
+                Insects help keep Australia's natural
+                environments healthy. They pollinate
+                plants, recycle nutrients, and provide
+                food for birds and other animals.
+            </p>
+
+            <p>
+                However, some Australian insects face
+                serious threats to their survival.
+                Australia's official threatened species
+                list helps identify insects that may
+                need protection.
+            </p>
+
+            <h3>How Many Threatened Insects Are Listed?</h3>
+
+            <p>
+                This chart compares different insect
+                groups on the Australian Government's
+                threatened species list.
+            </p>
+
+            <p>
+                The colours show how serious the threat
+                is, while the bars show the number
+                of listed entries in each group.
+            </p>
+
+            <div id="insect_conservation_chart"></div>
+
+            <p class="chart-note">
+                Sources: Australian Government Species
+                Profile and Threats Database (SPRAT),
+                extracted 28 August 2026; and Atlas
+                of Living Australia insect checklist,
+                downloaded 10 October 2026.
+
+                The chart combines the two original
+                datasets using scientific names.
+                Some entries refer to subspecies
+                rather than entire species.
+
+                Only entries matched between the two
+                datasets are shown. Unmatched
+                government-listed insects are excluded.
+            </p>
+
+            <h3>What Do the Threat Levels Mean?</h3>
+
+            <p>
+                <strong>Critically Endangered:</strong>
+                Facing an extremely high risk of extinction.
+            </p>
+
+            <p>
+                <strong>Endangered:</strong>
+                Facing a very high risk of extinction.
+            </p>
+
+            <p>
+                <strong>Vulnerable:</strong>
+                Facing a high risk of extinction.
+            </p>
+
+            <h3>Why Does This Matter?</h3>
+
+            <p>
+                Some Australian insects are at risk
+                of disappearing, which could affect
+                the ecosystems that depend on them.
+            </p>
+
+            <p>
+                Protecting insect habitats and learning
+                more about Australia's biodiversity
+                are important steps towards helping
+                these species survive.
+            </p>
+
+            <p>
+                The number of threatened-list entries
+                does not tell us what percentage of
+                all Australian insects are threatened.
+                It only shows the matched entries
+                in these two datasets.
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <!-- WEBSITE FOOTER -->
+    <footer>
+
+        <p>
+            Australia's Hidden Wings |
+            FIT3179 Data Visualisation 2
+        </p>
+
+        <p>
+            Data sources: Atlas of Living Australia,
+            Australian Government SPRAT,
+            Bureau of Meteorology,
+            and City of Melbourne.
+        </p>
+
+        <p>
+            Decorative butterfly illustration:
+            AI-generated for this website.
+        </p>
+
+    </footer>
+
+    <!-- LOAD ALL ELEVEN VISUALISATIONS -->
+    <script src="main.js"></script>
+
+</body>
+
+</html>

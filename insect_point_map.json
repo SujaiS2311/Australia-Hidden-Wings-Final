@@ -1,0 +1,139 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Map of 5,850 sampled Australian insect observations, with clearer labels and a consistent map style.",
+  "background": "white",
+  "width": 290,
+  "height": 320,
+
+  "title": {
+    "text": "Where Were Insects Spotted?",
+    "subtitle": [
+      "5,850 sampled observations, 2023–2025",
+      "Each dot shows one record, not insect abundance"
+    ],
+    "anchor": "start",
+    "fontSize": 17,
+    "subtitleFontSize": 11,
+    "color": "#173D32",
+    "subtitleColor": "#546B5E",
+    "offset": 14
+  },
+
+  "projection": {
+    "type": "mercator"
+  },
+
+  "layer": [
+    {
+      "data": {
+        "url": "data/states.geojson",
+        "format": {
+          "type": "json",
+          "property": "features"
+        }
+      },
+      "mark": {
+        "type": "geoshape",
+        "fill": "#EEF2ED",
+        "stroke": "#FFFFFF",
+        "strokeWidth": 1
+      }
+    },
+
+    {
+      "data": {
+        "url": "data/sample_observation_points.csv"
+      },
+
+      "transform": [
+        {
+          "calculate": "datum.group === 'Lepidoptera' ? 'Butterflies & Moths' : datum.group === 'Hymenoptera' ? 'Bees, Ants & Wasps' : datum.group === 'Odonata' ? 'Dragonflies & Damselflies' : null",
+          "as": "insect_group"
+        },
+        {
+          "filter": "datum.insect_group != null && isValid(datum.longitude) && isValid(datum.latitude)"
+        }
+      ],
+
+      "mark": {
+        "type": "circle",
+        "size": 21,
+        "opacity": 0.55,
+        "strokeWidth": 0
+      },
+
+      "encoding": {
+        "longitude": {
+          "field": "longitude",
+          "type": "quantitative"
+        },
+
+        "latitude": {
+          "field": "latitude",
+          "type": "quantitative"
+        },
+
+        "color": {
+          "field": "insect_group",
+          "type": "nominal",
+          "title": "Insect groups",
+          "scale": {
+            "domain": [
+              "Butterflies & Moths",
+              "Bees, Ants & Wasps",
+              "Dragonflies & Damselflies"
+            ],
+            "range": [
+              "#D5A14B",
+              "#4C9877",
+              "#5D88B3"
+            ]
+          },
+          "legend": {
+            "orient": "bottom",
+            "direction": "vertical",
+            "titleFontSize": 11,
+            "labelFontSize": 11,
+            "symbolSize": 100,
+            "labelLimit": 230
+          }
+        },
+
+        "tooltip": [
+          {
+            "field": "insect_group",
+            "title": "Insect group"
+          },
+          {
+            "field": "scientificName",
+            "title": "Recorded insect name"
+          },
+          {
+            "field": "state",
+            "title": "State"
+          },
+          {
+            "field": "year",
+            "title": "Year",
+            "format": "d"
+          },
+          {
+            "value": "This dot is one sampled observation",
+            "title": "What it means"
+          }
+        ]
+      }
+    }
+  ],
+
+  "config": {
+    "view": {
+      "stroke": null
+    },
+    "legend": {
+      "labelColor": "#354B40",
+      "titleColor": "#173D32"
+    }
+  }
+}

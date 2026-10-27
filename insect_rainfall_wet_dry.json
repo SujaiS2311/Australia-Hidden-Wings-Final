@@ -1,0 +1,636 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Annotated comparison of insect observations in wetter and drier Australian months using original BOM and ALA data.",
+  "width": 650,
+  "height": 340,
+  "padding": {
+    "left": 195,
+    "right": 85,
+    "top": 110,
+    "bottom": 95
+  },
+  "autosize": "none",
+  "background": "white",
+
+  "title": {
+    "text": "Are More Insects Recorded in Wetter Months?",
+    "subtitle": "Comparing monthly insect sightings in wetter and drier months, 2023–2025",
+    "anchor": "start",
+    "fontSize": 19,
+    "subtitleFontSize": 12,
+    "color": "#173D32",
+    "offset": 18
+  },
+
+  "data": [
+    {
+      "name": "rainfall",
+      "url": "data/australian_rainfall.csv",
+      "format": {
+        "type": "csv",
+        "parse": {
+          "Year": "number",
+          "Jan": "number",
+          "Feb": "number",
+          "Mar": "number",
+          "Apr": "number",
+          "May": "number",
+          "Jun": "number",
+          "Jul": "number",
+          "Aug": "number",
+          "Sep": "number",
+          "Oct": "number",
+          "Nov": "number",
+          "Dec": "number"
+        }
+      },
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.Year >= 2023 && datum.Year <= 2025"
+        },
+        {
+          "type": "fold",
+          "fields": [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec"
+          ],
+          "as": [
+            "month_short",
+            "rainfall_mm"
+          ]
+        },
+        {
+          "type": "formula",
+          "as": "month_number",
+          "expr": "indexof(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], datum.month_short) + 1"
+        },
+        {
+          "type": "aggregate",
+          "groupby": [
+            "month_number"
+          ],
+          "ops": [
+            "mean"
+          ],
+          "fields": [
+            "rainfall_mm"
+          ],
+          "as": [
+            "average_rainfall"
+          ]
+        },
+        {
+          "type": "window",
+          "sort": {
+            "field": "average_rainfall",
+            "order": "ascending"
+          },
+          "ops": [
+            "row_number"
+          ],
+          "as": [
+            "rainfall_rank"
+          ]
+        },
+        {
+          "type": "formula",
+          "as": "month_type",
+          "expr": "datum.rainfall_rank <= 6 ? 'Drier months' : 'Wetter months'"
+        }
+      ]
+    },
+
+    {
+      "name": "insects",
+      "url": "data/insect_monthly.csv",
+      "format": {
+        "type": "csv",
+        "parse": {
+          "month_number": "number",
+          "occurrence_records": "number"
+        }
+      },
+      "transform": [
+        {
+          "type": "formula",
+          "as": "group_name",
+          "expr": "datum.order === 'Lepidoptera' ? 'Butterflies & Moths' : datum.order === 'Hymenoptera' ? 'Bees, Ants & Wasps' : datum.order === 'Odonata' ? 'Dragonflies & Damselflies' : datum.order === 'Coleoptera' ? 'Beetles' : null"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.group_name != null"
+        },
+        {
+          "type": "lookup",
+          "from": "rainfall",
+          "key": "month_number",
+          "fields": [
+            "month_number"
+          ],
+          "values": [
+            "month_type"
+          ],
+          "as": [
+            "month_type"
+          ]
+        },
+        {
+          "type": "filter",
+          "expr": "datum.month_type != null"
+        }
+      ]
+    },
+
+    {
+      "name": "group_averages",
+      "source": "insects",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": [
+            "group_name"
+          ],
+          "ops": [
+            "mean"
+          ],
+          "fields": [
+            "occurrence_records"
+          ],
+          "as": [
+            "overall_average"
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "comparison",
+      "source": "insects",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": [
+            "group_name",
+            "month_type"
+          ],
+          "ops": [
+            "mean"
+          ],
+          "fields": [
+            "occurrence_records"
+          ],
+          "as": [
+            "average_records"
+          ]
+        },
+        {
+          "type": "lookup",
+          "from": "group_averages",
+          "key": "group_name",
+          "fields": [
+            "group_name"
+          ],
+          "values": [
+            "overall_average"
+          ],
+          "as": [
+            "overall_average"
+          ]
+        },
+        {
+          "type": "formula",
+          "as": "index_value",
+          "expr": "datum.average_records / datum.overall_average * 100"
+        }
+      ]
+    },
+
+    {
+      "name": "connections",
+      "source": "comparison",
+      "transform": [
+        {
+          "type": "pivot",
+          "field": "month_type",
+          "value": "index_value",
+          "groupby": [
+            "group_name"
+          ]
+        },
+        {
+          "type": "formula",
+          "as": "difference",
+          "expr": "datum['Wetter months'] - datum['Drier months']"
+        },
+        {
+          "type": "window",
+          "sort": {
+            "field": "difference",
+            "order": "descending"
+          },
+          "ops": [
+            "row_number"
+          ],
+          "as": [
+            "difference_rank"
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "largest_difference",
+      "source": "connections",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.difference_rank === 1"
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "domain": [0, 180],
+      "range": "width",
+      "zero": true
+    },
+    {
+      "name": "y",
+      "type": "band",
+      "domain": [
+        "Butterflies & Moths",
+        "Bees, Ants & Wasps",
+        "Dragonflies & Damselflies",
+        "Beetles"
+      ],
+      "range": "height",
+      "paddingInner": 0.48,
+      "paddingOuter": 0.38
+    },
+    {
+      "name": "colour",
+      "type": "ordinal",
+      "domain": [
+        "Drier months",
+        "Wetter months"
+      ],
+      "range": [
+        "#D5A451",
+        "#3E8169"
+      ]
+    }
+  ],
+
+  "axes": [
+    {
+      "scale": "x",
+      "orient": "bottom",
+      "title": "Compared with each group's average month",
+      "values": [
+        0,
+        50,
+        100,
+        150
+      ],
+      "labelExpr": "datum.value + '%'",
+      "titlePadding": 18,
+      "labelFontSize": 12,
+      "titleFontSize": 12,
+      "grid": true,
+      "gridColor": "#E5EBE6",
+      "domain": false,
+      "tickColor": "#CCD6CF",
+      "labelColor": "#43564A",
+      "titleColor": "#43564A"
+    },
+    {
+      "scale": "y",
+      "orient": "left",
+      "title": null,
+      "labelFontSize": 13,
+      "labelFontWeight": "bold",
+      "labelColor": "#173D32",
+      "labelPadding": 12,
+      "ticks": false,
+      "domain": false
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "from": {
+        "data": "largest_difference"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "value": 0
+          },
+          "x2": {
+            "signal": "width"
+          },
+          "y": {
+            "scale": "y",
+            "field": "group_name"
+          },
+          "height": {
+            "signal": "bandwidth('y')"
+          },
+          "fill": {
+            "value": "#F2F7F1"
+          },
+          "cornerRadius": {
+            "value": 7
+          }
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "value": 100
+          },
+          "y": {
+            "value": 0
+          },
+          "y2": {
+            "signal": "height"
+          },
+          "stroke": {
+            "value": "#8CA899"
+          },
+          "strokeDash": {
+            "value": [5, 5]
+          },
+          "strokeWidth": {
+            "value": 1.5
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "value": 100
+          },
+          "y": {
+            "value": -16
+          },
+          "text": {
+            "value": "100% = typical month"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "bottom"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#547465"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "from": {
+        "data": "connections"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "Drier months"
+          },
+          "x2": {
+            "scale": "x",
+            "field": "Wetter months"
+          },
+          "y": {
+            "scale": "y",
+            "field": "group_name",
+            "band": 0.5
+          },
+          "stroke": {
+            "value": "#ACBBB0"
+          },
+          "strokeWidth": {
+            "value": 4
+          },
+          "strokeCap": {
+            "value": "round"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "symbol",
+      "from": {
+        "data": "comparison"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "index_value"
+          },
+          "y": {
+            "scale": "y",
+            "field": "group_name",
+            "band": 0.5
+          },
+          "size": {
+            "value": 330
+          },
+          "fill": {
+            "scale": "colour",
+            "field": "month_type"
+          },
+          "stroke": {
+            "value": "white"
+          },
+          "strokeWidth": {
+            "value": 2
+          },
+          "tooltip": {
+            "signal": "{'Insect group': datum.group_name, 'Months': datum.month_type, 'Compared with typical month': format(datum.index_value, '.1f') + '%', 'Average monthly records': format(datum.average_records, ',.0f'), 'Measurement': 'Recorded sightings, not insect population'}"
+          }
+        },
+        "hover": {
+          "size": {
+            "value": 520
+          },
+          "strokeWidth": {
+            "value": 3
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "comparison"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "index_value"
+          },
+          "dx": {
+            "signal": "datum.month_type === 'Drier months' ? -12 : 12"
+          },
+          "y": {
+            "scale": "y",
+            "field": "group_name",
+            "band": 0.5
+          },
+          "text": {
+            "signal": "format(datum.index_value, '.0f') + '%'"
+          },
+          "align": {
+            "signal": "datum.month_type === 'Drier months' ? 'right' : 'left'"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#253B30"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "largest_difference"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width - 5"
+          },
+          "y": {
+            "scale": "y",
+            "field": "group_name",
+            "band": 0.5
+          },
+          "dy": {
+            "value": -25
+          },
+          "text": {
+            "value": "Largest difference"
+          },
+          "align": {
+            "value": "right"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#2E7255"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "largest_difference"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width - 5"
+          },
+          "y": {
+            "scale": "y",
+            "field": "group_name",
+            "band": 0.5
+          },
+          "dy": {
+            "value": -42
+          },
+          "text": {
+            "signal": "datum.group_name"
+          },
+          "align": {
+            "value": "right"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 13
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#173D32"
+          }
+        }
+      }
+    }
+  ],
+
+  "legends": [
+    {
+      "fill": "colour",
+      "orient": "bottom",
+      "direction": "horizontal",
+      "title": null,
+      "labelFontSize": 12,
+      "symbolSize": 160,
+      "offset": 25
+    }
+  ]
+}

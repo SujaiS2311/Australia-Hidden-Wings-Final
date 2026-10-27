@@ -1,0 +1,614 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Annotated rainfall and insect sightings radar chart using original BOM and ALA data, 2023–2025.",
+  "width": 680,
+  "height": 770,
+  "padding": {
+    "top": 30,
+    "right": 15,
+    "bottom": 25,
+    "left": 15
+  },
+  "autosize": {
+    "type": "pad",
+    "contains": "padding"
+  },
+  "background": "white",
+
+  "title": {
+    "text": "Rainfall and Insect Sightings Across Australia",
+    "subtitle": [
+      "Monthly patterns, 2023–2025",
+      "Each pattern is measured against its own highest month"
+    ],
+    "anchor": "start",
+    "font": "Arial",
+    "fontSize": 20,
+    "subtitleFontSize": 13,
+    "color": "#173D32",
+    "subtitleColor": "#547465",
+    "offset": 18
+  },
+
+  "signals": [
+    {
+      "name": "cx",
+      "value": 340
+    },
+    {
+      "name": "cy",
+      "value": 345
+    },
+    {
+      "name": "radius",
+      "value": 245
+    }
+  ],
+
+  "data": [
+    {
+      "name": "months",
+      "values": [
+        {"month": "Jan", "month_number": 1},
+        {"month": "Feb", "month_number": 2},
+        {"month": "Mar", "month_number": 3},
+        {"month": "Apr", "month_number": 4},
+        {"month": "May", "month_number": 5},
+        {"month": "Jun", "month_number": 6},
+        {"month": "Jul", "month_number": 7},
+        {"month": "Aug", "month_number": 8},
+        {"month": "Sep", "month_number": 9},
+        {"month": "Oct", "month_number": 10},
+        {"month": "Nov", "month_number": 11},
+        {"month": "Dec", "month_number": 12}
+      ]
+    },
+
+    {
+      "name": "grid_levels",
+      "values": [
+        {"value": 20},
+        {"value": 40},
+        {"value": 60},
+        {"value": 80},
+        {"value": 100}
+      ]
+    },
+
+    {
+      "name": "rain_raw",
+      "url": "data/australian_rainfall.csv",
+      "format": {
+        "type": "csv"
+      },
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "toNumber(datum.Year) >= 2023 && toNumber(datum.Year) <= 2025"
+        },
+        {
+          "type": "fold",
+          "fields": [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+          ],
+          "as": ["month", "rainfall"]
+        },
+        {
+          "type": "formula",
+          "expr": "toNumber(datum.rainfall)",
+          "as": "rainfall_mm"
+        },
+        {
+          "type": "aggregate",
+          "groupby": ["month"],
+          "fields": ["rainfall_mm"],
+          "ops": ["mean"],
+          "as": ["average_rainfall"]
+        },
+        {
+          "type": "lookup",
+          "from": "months",
+          "key": "month",
+          "fields": ["month"],
+          "values": ["month_number"]
+        }
+      ]
+    },
+
+    {
+      "name": "rain_max",
+      "source": "rain_raw",
+      "transform": [
+        {
+          "type": "aggregate",
+          "fields": ["average_rainfall"],
+          "ops": ["max"],
+          "as": ["maximum"]
+        }
+      ]
+    },
+
+    {
+      "name": "rain_series",
+      "source": "rain_raw",
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "'Australian Rainfall'",
+          "as": "series"
+        },
+        {
+          "type": "formula",
+          "expr": "datum.average_rainfall / data('rain_max')[0].maximum * 100",
+          "as": "normalised_value"
+        },
+        {
+          "type": "formula",
+          "expr": "(datum.month_number - 1) / 12 * 2 * PI - PI / 2",
+          "as": "angle"
+        },
+        {
+          "type": "formula",
+          "expr": "cx + scale('rScale', datum.normalised_value) * cos(datum.angle)",
+          "as": "x"
+        },
+        {
+          "type": "formula",
+          "expr": "cy + scale('rScale', datum.normalised_value) * sin(datum.angle)",
+          "as": "y"
+        }
+      ]
+    },
+
+    {
+      "name": "insect_raw",
+      "url": "data/insect_monthly.csv",
+      "format": {
+        "type": "csv"
+      },
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "toNumber(datum.occurrence_records)",
+          "as": "record_count"
+        },
+        {
+          "type": "aggregate",
+          "groupby": ["month", "month_number"],
+          "fields": ["record_count"],
+          "ops": ["sum"],
+          "as": ["total_sightings"]
+        }
+      ]
+    },
+
+    {
+      "name": "insect_max",
+      "source": "insect_raw",
+      "transform": [
+        {
+          "type": "aggregate",
+          "fields": ["total_sightings"],
+          "ops": ["max"],
+          "as": ["maximum"]
+        }
+      ]
+    },
+
+    {
+      "name": "insect_series",
+      "source": "insect_raw",
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "'Insect Sightings'",
+          "as": "series"
+        },
+        {
+          "type": "formula",
+          "expr": "datum.total_sightings / data('insect_max')[0].maximum * 100",
+          "as": "normalised_value"
+        },
+        {
+          "type": "formula",
+          "expr": "(toNumber(datum.month_number) - 1) / 12 * 2 * PI - PI / 2",
+          "as": "angle"
+        },
+        {
+          "type": "formula",
+          "expr": "cx + scale('rScale', datum.normalised_value) * cos(datum.angle)",
+          "as": "x"
+        },
+        {
+          "type": "formula",
+          "expr": "cy + scale('rScale', datum.normalised_value) * sin(datum.angle)",
+          "as": "y"
+        }
+      ]
+    },
+
+    {
+      "name": "combined_points",
+      "source": [
+        "rain_series",
+        "insect_series"
+      ]
+    },
+
+    {
+      "name": "peak_points",
+      "source": "combined_points",
+      "transform": [
+        {
+          "type": "window",
+          "groupby": ["series"],
+          "sort": {
+            "field": "normalised_value",
+            "order": "descending"
+          },
+          "ops": ["row_number"],
+          "as": ["peak_rank"]
+        },
+        {
+          "type": "filter",
+          "expr": "datum.peak_rank === 1"
+        }
+      ]
+    },
+
+    {
+      "name": "month_labels",
+      "source": "months",
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "(datum.month_number - 1) / 12 * 2 * PI - PI / 2",
+          "as": "angle"
+        },
+        {
+          "type": "formula",
+          "expr": "cx + (radius + 30) * cos(datum.angle)",
+          "as": "x"
+        },
+        {
+          "type": "formula",
+          "expr": "cy + (radius + 30) * sin(datum.angle)",
+          "as": "y"
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "rScale",
+      "type": "linear",
+      "domain": [0, 100],
+      "range": [
+        0,
+        {"signal": "radius"}
+      ],
+      "zero": true
+    },
+    {
+      "name": "colorScale",
+      "type": "ordinal",
+      "domain": [
+        "Australian Rainfall",
+        "Insect Sightings"
+      ],
+      "range": [
+        "#4C8FB8",
+        "#3E7F58"
+      ]
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "arc",
+      "from": {
+        "data": "grid_levels"
+      },
+      "encode": {
+        "enter": {
+          "x": {"signal": "cx"},
+          "y": {"signal": "cy"},
+          "startAngle": {"value": 0},
+          "endAngle": {"value": 6.283185307179586},
+          "innerRadius": {
+            "signal": "scale('rScale', datum.value)"
+          },
+          "outerRadius": {
+            "signal": "scale('rScale', datum.value)"
+          },
+          "stroke": {"value": "#D9E6DE"},
+          "strokeWidth": {"value": 1.2},
+          "fill": {"value": null}
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "from": {
+        "data": "months"
+      },
+      "encode": {
+        "enter": {
+          "x": {"signal": "cx"},
+          "y": {"signal": "cy"},
+          "x2": {
+            "signal": "cx + radius * cos((datum.month_number - 1) / 12 * 2 * PI - PI / 2)"
+          },
+          "y2": {
+            "signal": "cy + radius * sin((datum.month_number - 1) / 12 * 2 * PI - PI / 2)"
+          },
+          "stroke": {"value": "#E8EFE9"},
+          "strokeWidth": {"value": 1}
+        }
+      }
+    },
+
+    {
+      "type": "line",
+      "from": {
+        "data": "rain_series"
+      },
+      "sort": {
+        "field": "month_number"
+      },
+      "encode": {
+        "enter": {
+          "x": {"field": "x"},
+          "y": {"field": "y"},
+          "stroke": {"value": "#4C8FB8"},
+          "strokeWidth": {"value": 3.5},
+          "strokeOpacity": {"value": 0.95},
+          "interpolate": {"value": "linear-closed"}
+        }
+      }
+    },
+
+    {
+      "type": "line",
+      "from": {
+        "data": "insect_series"
+      },
+      "sort": {
+        "field": "month_number"
+      },
+      "encode": {
+        "enter": {
+          "x": {"field": "x"},
+          "y": {"field": "y"},
+          "stroke": {"value": "#3E7F58"},
+          "strokeWidth": {"value": 3.5},
+          "strokeOpacity": {"value": 0.95},
+          "interpolate": {"value": "linear-closed"}
+        }
+      }
+    },
+
+    {
+      "type": "symbol",
+      "from": {
+        "data": "combined_points"
+      },
+      "encode": {
+        "enter": {
+          "x": {"field": "x"},
+          "y": {"field": "y"},
+          "size": {"value": 100},
+          "fill": {
+            "scale": "colorScale",
+            "field": "series"
+          },
+          "stroke": {"value": "#FFFFFF"},
+          "strokeWidth": {"value": 2}
+        },
+        "update": {
+          "tooltip": {
+            "signal": "datum.series === 'Australian Rainfall' ? {'Month': datum.month, 'Dataset': 'Bureau of Meteorology', 'Average rainfall': format(datum.average_rainfall, '.1f') + ' mm', 'Relative to highest month': format(datum.normalised_value, '.1f') + '%'} : {'Month': datum.month, 'Dataset': 'Atlas of Living Australia', 'Recorded sightings': format(datum.total_sightings, ','), 'Relative to highest month': format(datum.normalised_value, '.1f') + '%'}"
+          }
+        },
+        "hover": {
+          "size": {"value": 210}
+        }
+      }
+    },
+
+    {
+      "type": "symbol",
+      "from": {
+        "data": "peak_points"
+      },
+      "encode": {
+        "enter": {
+          "x": {"field": "x"},
+          "y": {"field": "y"},
+          "size": {"value": 370},
+          "shape": {"value": "circle"},
+          "fill": {"value": "white"},
+          "fillOpacity": {"value": 0},
+          "stroke": {
+            "scale": "colorScale",
+            "field": "series"
+          },
+          "strokeWidth": {"value": 3}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "month_labels"
+      },
+      "encode": {
+        "enter": {
+          "x": {"field": "x"},
+          "y": {"field": "y"},
+          "text": {"field": "month"},
+          "align": {"value": "center"},
+          "baseline": {"value": "middle"},
+          "font": {"value": "Arial"},
+          "fontSize": {"value": 14},
+          "fontWeight": {"value": "bold"},
+          "fill": {"value": "#243B30"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "grid_levels"
+      },
+      "encode": {
+        "enter": {
+          "x": {"signal": "cx + 18"},
+          "y": {
+            "signal": "cy - scale('rScale', datum.value) - 6"
+          },
+          "text": {
+            "signal": "datum.value + '%'"
+          },
+          "fontSize": {"value": 11},
+          "fill": {"value": "#74867B"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "cx"},
+          "y": {"signal": "cy"},
+          "text": {"value": "Australia"},
+          "align": {"value": "center"},
+          "baseline": {"value": "middle"},
+          "font": {"value": "Arial"},
+          "fontSize": {"value": 16},
+          "fontWeight": {"value": "bold"},
+          "fill": {"value": "#173D32"}
+        }
+      }
+    },
+
+    {
+      "type": "symbol",
+      "encode": {
+        "enter": {
+          "x": {"value": 175},
+          "y": {"value": 650},
+          "size": {"value": 185},
+          "fill": {"value": "#4C8FB8"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 195},
+          "y": {"value": 650},
+          "text": {"value": "Australian Rainfall"},
+          "baseline": {"value": "middle"},
+          "fontSize": {"value": 14},
+          "fontWeight": {"value": "bold"},
+          "fill": {"value": "#243B30"}
+        }
+      }
+    },
+
+    {
+      "type": "symbol",
+      "encode": {
+        "enter": {
+          "x": {"value": 420},
+          "y": {"value": 650},
+          "size": {"value": 185},
+          "fill": {"value": "#3E7F58"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 440},
+          "y": {"value": 650},
+          "text": {"value": "Insect Sightings"},
+          "baseline": {"value": "middle"},
+          "fontSize": {"value": 14},
+          "fontWeight": {"value": "bold"},
+          "fill": {"value": "#243B30"}
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "encode": {
+        "enter": {
+          "x": {"value": 70},
+          "x2": {"value": 610},
+          "y": {"value": 680},
+          "stroke": {"value": "#E2EAE3"},
+          "strokeWidth": {"value": 1}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "peak_points"
+      },
+      "encode": {
+        "enter": {
+          "x": {"signal": "cx"},
+          "y": {
+            "signal": "datum.series === 'Australian Rainfall' ? 705 : 731"
+          },
+          "text": {
+            "signal": "datum.series === 'Australian Rainfall' ? 'WETTEST MONTH: ' + datum.month + ' (' + format(datum.average_rainfall, '.1f') + ' mm average rainfall)' : 'MOST INSECT RECORDS: ' + datum.month + ' (' + format(datum.total_sightings, ',') + ' sightings)'"
+          },
+          "align": {"value": "center"},
+          "baseline": {"value": "middle"},
+          "font": {"value": "Arial"},
+          "fontSize": {"value": 13},
+          "fontWeight": {"value": "bold"},
+          "fill": {
+            "scale": "colorScale",
+            "field": "series"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "cx"},
+          "y": {"value": 755},
+          "text": {
+            "value": "The two patterns peak in different months."
+          },
+          "align": {"value": "center"},
+          "baseline": {"value": "middle"},
+          "font": {"value": "Arial"},
+          "fontSize": {"value": 12},
+          "fill": {"value": "#526B5B"}
+        }
+      }
+    }
+  ]
+}

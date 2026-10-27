@@ -1,0 +1,239 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Annotated seasonal heatmap of Australian insect observation records from 2023 to 2025, using the original Atlas of Living Australia monthly dataset.",
+  "background": "white",
+  "width": 720,
+  "height": 270,
+  "padding": {
+    "left": 10,
+    "right": 18,
+    "top": 25,
+    "bottom": 20
+  },
+
+  "title": {
+    "text": "When Are Australian Insects Most Often Recorded?",
+    "subtitle": [
+      "Peak month: Butterflies & Moths in February — 54,975 records",
+      "Darker cells show more recorded sightings, 2023–2025"
+    ],
+    "anchor": "start",
+    "fontSize": 19,
+    "subtitleFontSize": 12,
+    "color": "#173D32",
+    "subtitleColor": "#526D5B",
+    "offset": 20
+  },
+
+  "data": {
+    "url": "data/insect_monthly.csv",
+    "format": {
+      "type": "csv",
+      "parse": {
+        "month_number": "number",
+        "occurrence_records": "number"
+      }
+    }
+  },
+
+  "transform": [
+    {
+      "calculate": "datum.order === 'Lepidoptera' ? 'Butterflies & Moths' : datum.order === 'Hymenoptera' ? 'Bees, Ants & Wasps' : datum.order === 'Odonata' ? 'Dragonflies & Damselflies' : datum.order === 'Coleoptera' ? 'Beetles' : null",
+      "as": "insect_group"
+    },
+    {
+      "filter": "datum.insect_group != null"
+    },
+    {
+      "window": [
+        {
+          "op": "row_number",
+          "as": "peak_rank"
+        }
+      ],
+      "sort": [
+        {
+          "field": "occurrence_records",
+          "order": "descending"
+        }
+      ]
+    }
+  ],
+
+  "encoding": {
+    "x": {
+      "field": "month",
+      "type": "ordinal",
+      "title": "Month",
+      "sort": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      "axis": {
+        "labelExpr": "slice(datum.label, 0, 3)",
+        "labelAngle": 0,
+        "labelFontSize": 12,
+        "labelPadding": 10,
+        "labelColor": "#354B40",
+        "titleFontSize": 12,
+        "titleColor": "#354B40",
+        "titlePadding": 14,
+        "ticks": false,
+        "domain": false
+      },
+      "scale": {
+        "paddingInner": 0.045,
+        "paddingOuter": 0.02
+      }
+    },
+
+    "y": {
+      "field": "insect_group",
+      "type": "nominal",
+      "title": null,
+      "sort": [
+        "Butterflies & Moths",
+        "Bees, Ants & Wasps",
+        "Dragonflies & Damselflies",
+        "Beetles"
+      ],
+      "axis": {
+        "labelFontSize": 13,
+        "labelFontWeight": "bold",
+        "labelColor": "#173D32",
+        "labelLimit": 215,
+        "labelPadding": 12,
+        "ticks": false,
+        "domain": false
+      },
+      "scale": {
+        "paddingInner": 0.075,
+        "paddingOuter": 0.04
+      }
+    }
+  },
+
+  "layer": [
+    {
+      "mark": {
+        "type": "rect",
+        "cornerRadius": 3,
+        "stroke": "white",
+        "strokeWidth": 1
+      },
+      "encoding": {
+        "color": {
+          "field": "occurrence_records",
+          "type": "quantitative",
+          "title": "Recorded sightings",
+          "scale": {
+            "scheme": "yellowgreenblue"
+          },
+          "legend": {
+            "orient": "bottom",
+            "direction": "horizontal",
+            "gradientLength": 245,
+            "gradientThickness": 12,
+            "titleFontSize": 12,
+            "labelFontSize": 11,
+            "format": "~s",
+            "offset": 20
+          }
+        },
+        "tooltip": [
+          {
+            "field": "insect_group",
+            "title": "Insect group"
+          },
+          {
+            "field": "month",
+            "title": "Month"
+          },
+          {
+            "field": "season",
+            "title": "Australian season"
+          },
+          {
+            "field": "occurrence_records",
+            "type": "quantitative",
+            "title": "Recorded sightings",
+            "format": ","
+          }
+        ]
+      }
+    },
+
+    {
+      "transform": [
+        {
+          "filter": "datum.peak_rank === 1"
+        }
+      ],
+      "mark": {
+        "type": "rect",
+        "fillOpacity": 0,
+        "stroke": "#F5C451",
+        "strokeWidth": 4,
+        "cornerRadius": 3
+      }
+    },
+
+    {
+      "transform": [
+        {
+          "filter": "datum.peak_rank === 1"
+        }
+      ],
+      "mark": {
+        "type": "text",
+        "fontSize": 10,
+        "fontWeight": "bold",
+        "color": "#FFFFFF",
+        "align": "center",
+        "baseline": "middle"
+      },
+      "encoding": {
+        "text": {
+          "value": "PEAK"
+        },
+        "tooltip": [
+          {
+            "field": "insect_group",
+            "title": "Highest-recorded group"
+          },
+          {
+            "field": "month",
+            "title": "Peak month"
+          },
+          {
+            "field": "occurrence_records",
+            "title": "Recorded sightings",
+            "format": ","
+          }
+        ]
+      }
+    }
+  ],
+
+  "config": {
+    "font": "Arial",
+    "view": {
+      "stroke": null
+    },
+    "legend": {
+      "titleColor": "#173D32",
+      "labelColor": "#354B40"
+    }
+  }
+}

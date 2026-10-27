@@ -1,0 +1,185 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Annotated insect group comparison using the existing Atlas of Living Australia observation totals for 2023–2025.",
+  "background": "white",
+  "width": 560,
+  "height": 280,
+  "padding": {
+    "left": 10,
+    "right": 25,
+    "top": 20,
+    "bottom": 15
+  },
+
+  "title": {
+    "text": "Which Insects Are Recorded Most Often?",
+    "subtitle": [
+      "Butterflies and moths lead these three groups by a wide margin.",
+      "Australian insect observation records, 2023–2025"
+    ],
+    "anchor": "start",
+    "fontSize": 19,
+    "subtitleFontSize": 12,
+    "color": "#173D32",
+    "subtitleColor": "#546B5E",
+    "offset": 18
+  },
+
+  "data": {
+    "values": [
+      {
+        "group": "Butterflies & Moths",
+        "records": 443937,
+        "rank": 1
+      },
+      {
+        "group": "Dragonflies & Damselflies",
+        "records": 97322,
+        "rank": 2
+      },
+      {
+        "group": "Bees, Ants & Wasps",
+        "records": 89764,
+        "rank": 3
+      }
+    ]
+  },
+
+  "encoding": {
+    "y": {
+      "field": "group",
+      "type": "nominal",
+      "sort": {
+        "field": "rank",
+        "order": "ascending"
+      },
+      "title": null,
+      "scale": {
+        "paddingInner": 0.48,
+        "paddingOuter": 0.3
+      },
+      "axis": {
+        "labelFontSize": 13,
+        "labelFontWeight": "bold",
+        "labelColor": "#173D32",
+        "labelLimit": 225,
+        "labelPadding": 14,
+        "domain": false,
+        "ticks": false
+      }
+    },
+    "x": {
+      "field": "records",
+      "type": "quantitative",
+      "scale": {
+        "domain": [0, 540000],
+        "nice": false
+      },
+      "axis": {
+        "title": "Number of recorded observations",
+        "titleFontSize": 12,
+        "titlePadding": 16,
+        "labelFontSize": 12,
+        "format": "~s",
+        "values": [0, 100000, 200000, 300000, 400000, 500000],
+        "grid": true,
+        "gridColor": "#E6ECE7",
+        "domain": false,
+        "tickColor": "#CCD7CE"
+      }
+    }
+  },
+
+  "layer": [
+    {
+      "mark": {
+        "type": "bar",
+        "cornerRadiusEnd": 5,
+        "size": 36
+      },
+      "encoding": {
+        "color": {
+          "field": "group",
+          "type": "nominal",
+          "scale": {
+            "domain": [
+              "Butterflies & Moths",
+              "Bees, Ants & Wasps",
+              "Dragonflies & Damselflies"
+            ],
+            "range": [
+              "#D5A14B",
+              "#4C9877",
+              "#5D88B3"
+            ]
+          },
+          "legend": null
+        },
+        "tooltip": [
+          {
+            "field": "group",
+            "title": "Insect group"
+          },
+          {
+            "field": "records",
+            "title": "Recorded observations",
+            "format": ","
+          }
+        ]
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "baseline": "middle",
+        "dx": 9,
+        "fontSize": 13,
+        "fontWeight": "bold",
+        "color": "#173D32"
+      },
+      "encoding": {
+        "text": {
+          "field": "records",
+          "type": "quantitative",
+          "format": ","
+        }
+      }
+    },
+    {
+      "transform": [
+        {
+          "filter": "datum.rank === 1"
+        }
+      ],
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "baseline": "bottom",
+        "dx": 8,
+        "dy": -24,
+        "fontSize": 12,
+        "fontWeight": "bold",
+        "color": "#A37122"
+      },
+      "encoding": {
+        "text": {
+          "value": "MOST RECORDED"
+        }
+      }
+    }
+  ],
+
+  "config": {
+    "view": {
+      "stroke": null
+    },
+    "axis": {
+      "labelFont": "Arial",
+      "titleFont": "Arial",
+      "labelColor": "#43584B",
+      "titleColor": "#43584B"
+    }
+  }
+}

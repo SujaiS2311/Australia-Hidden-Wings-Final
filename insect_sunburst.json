@@ -1,0 +1,586 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Annotated sunburst of four Australian insect groups and their families, using the original ALA insect checklist.",
+  "width": 560,
+  "height": 560,
+  "autosize": "none",
+  "padding": {
+    "left": 22,
+    "right": 22,
+    "top": 75,
+    "bottom": 135
+  },
+  "background": "white",
+
+  "title": {
+    "text": "Australia's Insect Family Tree",
+    "subtitle": "Inner ring: insect groups | Outer ring: scientific families",
+    "anchor": "start",
+    "fontSize": 19,
+    "subtitleFontSize": 12,
+    "color": "#173D32",
+    "subtitleColor": "#546B5E",
+    "offset": 18
+  },
+
+  "data": [
+    {
+      "name": "records",
+      "url": "data/insect_checklist.csv",
+      "format": {
+        "type": "csv"
+      },
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "lower(trim(datum['Taxon Rank'])) === 'species'"
+        },
+        {
+          "type": "formula",
+          "as": "group_name",
+          "expr": "datum.Order === 'Lepidoptera' ? 'Butterflies & Moths' : datum.Order === 'Coleoptera' ? 'Beetles' : datum.Order === 'Hymenoptera' ? 'Bees, Ants & Wasps' : datum.Order === 'Odonata' ? 'Dragonflies & Damselflies' : null"
+        },
+        {
+          "type": "formula",
+          "as": "group_order",
+          "expr": "datum.Order === 'Lepidoptera' ? 1 : datum.Order === 'Coleoptera' ? 2 : datum.Order === 'Hymenoptera' ? 3 : 4"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.group_name != null && datum.Family != null && trim(datum.Family) !== ''"
+        }
+      ]
+    },
+
+    {
+      "name": "groups",
+      "source": "records",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": [
+            "group_name",
+            "group_order"
+          ],
+          "ops": [
+            "count"
+          ],
+          "as": [
+            "count"
+          ]
+        },
+        {
+          "type": "joinaggregate",
+          "ops": [
+            "sum"
+          ],
+          "fields": [
+            "count"
+          ],
+          "as": [
+            "grand_total"
+          ]
+        },
+        {
+          "type": "stack",
+          "field": "count",
+          "sort": {
+            "field": "group_order",
+            "order": "ascending"
+          },
+          "as": [
+            "start",
+            "end"
+          ]
+        },
+        {
+          "type": "formula",
+          "as": "a0",
+          "expr": "datum.start / datum.grand_total * 2 * PI"
+        },
+        {
+          "type": "formula",
+          "as": "a1",
+          "expr": "datum.end / datum.grand_total * 2 * PI"
+        },
+        {
+          "type": "formula",
+          "as": "percentage",
+          "expr": "datum.count / datum.grand_total * 100"
+        }
+      ]
+    },
+
+    {
+      "name": "families",
+      "source": "records",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": [
+            "group_name",
+            "group_order",
+            "Family"
+          ],
+          "ops": [
+            "count"
+          ],
+          "as": [
+            "count"
+          ]
+        },
+        {
+          "type": "stack",
+          "field": "count",
+          "groupby": [
+            "group_name"
+          ],
+          "sort": {
+            "field": "Family",
+            "order": "ascending"
+          },
+          "as": [
+            "local_start",
+            "local_end"
+          ]
+        },
+        {
+          "type": "lookup",
+          "from": "groups",
+          "key": "group_name",
+          "fields": [
+            "group_name"
+          ],
+          "values": [
+            "start",
+            "grand_total"
+          ],
+          "as": [
+            "group_start",
+            "grand_total"
+          ]
+        },
+        {
+          "type": "formula",
+          "as": "a0",
+          "expr": "(datum.group_start + datum.local_start) / datum.grand_total * 2 * PI"
+        },
+        {
+          "type": "formula",
+          "as": "a1",
+          "expr": "(datum.group_start + datum.local_end) / datum.grand_total * 2 * PI"
+        }
+      ]
+    },
+
+    {
+      "name": "largest_group",
+      "source": "groups",
+      "transform": [
+        {
+          "type": "window",
+          "sort": {
+            "field": "count",
+            "order": "descending"
+          },
+          "ops": [
+            "row_number"
+          ],
+          "as": [
+            "rank"
+          ]
+        },
+        {
+          "type": "filter",
+          "expr": "datum.rank === 1"
+        }
+      ]
+    },
+
+    {
+      "name": "legend_data",
+      "values": [
+        {
+          "group_name": "Butterflies & Moths",
+          "x": 20,
+          "y": 620
+        },
+        {
+          "group_name": "Beetles",
+          "x": 300,
+          "y": 620
+        },
+        {
+          "group_name": "Bees, Ants & Wasps",
+          "x": 20,
+          "y": 650
+        },
+        {
+          "group_name": "Dragonflies & Damselflies",
+          "x": 300,
+          "y": 650
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": [
+        "Butterflies & Moths",
+        "Beetles",
+        "Bees, Ants & Wasps",
+        "Dragonflies & Damselflies"
+      ],
+      "range": [
+        "#D5A14B",
+        "#A67DB8",
+        "#3E7F58",
+        "#4C8FB8"
+      ]
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "arc",
+      "from": {
+        "data": "families"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width / 2"
+          },
+          "y": {
+            "signal": "height / 2"
+          },
+          "innerRadius": {
+            "value": 142
+          },
+          "outerRadius": {
+            "value": 250
+          },
+          "fill": {
+            "scale": "color",
+            "field": "group_name"
+          },
+          "stroke": {
+            "value": "#FFFFFF"
+          },
+          "strokeWidth": {
+            "value": 0.7
+          },
+          "tooltip": {
+            "signal": "{'Insect group': datum.group_name, 'Scientific family': datum.Family, 'Species-level entries': format(datum.count, ',')}"
+          }
+        },
+        "update": {
+          "startAngle": {
+            "field": "a0"
+          },
+          "endAngle": {
+            "field": "a1"
+          },
+          "fillOpacity": {
+            "value": 0.65
+          }
+        },
+        "hover": {
+          "fillOpacity": {
+            "value": 1
+          },
+          "strokeWidth": {
+            "value": 1.5
+          }
+        }
+      }
+    },
+
+    {
+      "type": "arc",
+      "from": {
+        "data": "groups"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width / 2"
+          },
+          "y": {
+            "signal": "height / 2"
+          },
+          "innerRadius": {
+            "value": 67
+          },
+          "outerRadius": {
+            "value": 138
+          },
+          "fill": {
+            "scale": "color",
+            "field": "group_name"
+          },
+          "stroke": {
+            "value": "white"
+          },
+          "strokeWidth": {
+            "value": 2
+          },
+          "tooltip": {
+            "signal": "{'Insect group': datum.group_name, 'Species-level entries': format(datum.count, ','), 'Share of these four groups': format(datum.percentage, '.1f') + '%'}"
+          }
+        },
+        "update": {
+          "startAngle": {
+            "field": "a0"
+          },
+          "endAngle": {
+            "field": "a1"
+          },
+          "fillOpacity": {
+            "value": 0.98
+          }
+        },
+        "hover": {
+          "fillOpacity": {
+            "value": 1
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "groups"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width/2 + sin((datum.a0 + datum.a1)/2) * 103"
+          },
+          "y": {
+            "signal": "height/2 - cos((datum.a0 + datum.a1)/2) * 103"
+          },
+          "text": {
+            "signal": "datum.percentage >= 5 ? format(datum.count, ',') : ''"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#FFFFFF"
+          },
+          "tooltip": {
+            "signal": "{'Insect group': datum.group_name, 'Species-level entries': format(datum.count, ',')}"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width / 2"
+          },
+          "y": {
+            "signal": "height / 2 - 11"
+          },
+          "text": {
+            "value": "Australian"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 16
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#173D32"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width / 2"
+          },
+          "y": {
+            "signal": "height / 2 + 11"
+          },
+          "text": {
+            "value": "Insects"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 16
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#173D32"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "largest_group"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width / 2"
+          },
+          "y": {
+            "signal": "height + 18"
+          },
+          "text": {
+            "signal": "'LARGEST GROUP: ' + datum.group_name"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 15
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#173D32"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "largest_group"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width / 2"
+          },
+          "y": {
+            "signal": "height + 42"
+          },
+          "text": {
+            "signal": "format(datum.count, ',') + ' species-level entries (' + format(datum.percentage, '.1f') + '% of these four groups)'"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fill": {
+            "value": "#547465"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "symbol",
+      "from": {
+        "data": "legend_data"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "field": "x"
+          },
+          "y": {
+            "field": "y"
+          },
+          "size": {
+            "value": 150
+          },
+          "shape": {
+            "value": "circle"
+          },
+          "fill": {
+            "scale": "color",
+            "field": "group_name"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "legend_data"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "datum.x + 16"
+          },
+          "y": {
+            "field": "y"
+          },
+          "text": {
+            "field": "group_name"
+          },
+          "align": {
+            "value": "left"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#173D32"
+          }
+        }
+      }
+    }
+  ]
+}

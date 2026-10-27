@@ -1,0 +1,494 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Compact annotated streamgraph of Australian insect observation records, 1980–2025.",
+  "width": 1000,
+  "height": 320,
+  "padding": {
+    "left": 20,
+    "right": 25,
+    "top": 65,
+    "bottom": 30
+  },
+  "background": "white",
+
+  "title": {
+    "text": "How Have Australian Insect Records Changed Since 1980?",
+    "subtitle": "Four insect groups | Recorded observations, 1980–2025",
+    "anchor": "start",
+    "fontSize": 19,
+    "subtitleFontSize": 12,
+    "offset": 18,
+    "color": "#173D32",
+    "subtitleColor": "#526B5B"
+  },
+
+  "data": [
+    {
+      "name": "lepidoptera_raw",
+      "url": "data/lepidopetra.json",
+      "format": {
+        "type": "json"
+      }
+    },
+    {
+      "name": "lepidoptera",
+      "source": "lepidoptera_raw",
+      "transform": [
+        {
+          "type": "flatten",
+          "fields": ["fieldResult"]
+        },
+        {
+          "type": "formula",
+          "as": "year",
+          "expr": "toNumber(datum.fieldResult.label)"
+        },
+        {
+          "type": "formula",
+          "as": "records",
+          "expr": "toNumber(datum.fieldResult.count)"
+        },
+        {
+          "type": "formula",
+          "as": "insect_group",
+          "expr": "'Butterflies & Moths'"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.year >= 1980 && datum.year <= 2025"
+        }
+      ]
+    },
+
+    {
+      "name": "hymenoptera_raw",
+      "url": "data/hymenopetera.json",
+      "format": {
+        "type": "json"
+      }
+    },
+    {
+      "name": "hymenoptera",
+      "source": "hymenoptera_raw",
+      "transform": [
+        {
+          "type": "flatten",
+          "fields": ["fieldResult"]
+        },
+        {
+          "type": "formula",
+          "as": "year",
+          "expr": "toNumber(datum.fieldResult.label)"
+        },
+        {
+          "type": "formula",
+          "as": "records",
+          "expr": "toNumber(datum.fieldResult.count)"
+        },
+        {
+          "type": "formula",
+          "as": "insect_group",
+          "expr": "'Bees, Ants & Wasps'"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.year >= 1980 && datum.year <= 2025"
+        }
+      ]
+    },
+
+    {
+      "name": "odonata_raw",
+      "url": "data/odenta.json",
+      "format": {
+        "type": "json"
+      }
+    },
+    {
+      "name": "odonata",
+      "source": "odonata_raw",
+      "transform": [
+        {
+          "type": "flatten",
+          "fields": ["fieldResult"]
+        },
+        {
+          "type": "formula",
+          "as": "year",
+          "expr": "toNumber(datum.fieldResult.label)"
+        },
+        {
+          "type": "formula",
+          "as": "records",
+          "expr": "toNumber(datum.fieldResult.count)"
+        },
+        {
+          "type": "formula",
+          "as": "insect_group",
+          "expr": "'Dragonflies & Damselflies'"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.year >= 1980 && datum.year <= 2025"
+        }
+      ]
+    },
+
+    {
+      "name": "coleoptera_raw",
+      "url": "data/coleoptera.json",
+      "format": {
+        "type": "json"
+      }
+    },
+    {
+      "name": "coleoptera",
+      "source": "coleoptera_raw",
+      "transform": [
+        {
+          "type": "flatten",
+          "fields": ["fieldResult"]
+        },
+        {
+          "type": "formula",
+          "as": "year",
+          "expr": "toNumber(datum.fieldResult.label)"
+        },
+        {
+          "type": "formula",
+          "as": "records",
+          "expr": "toNumber(datum.fieldResult.count)"
+        },
+        {
+          "type": "formula",
+          "as": "insect_group",
+          "expr": "'Beetles'"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.year >= 1980 && datum.year <= 2025"
+        }
+      ]
+    },
+
+    {
+      "name": "table",
+      "source": [
+        "lepidoptera",
+        "hymenoptera",
+        "odonata",
+        "coleoptera"
+      ],
+      "transform": [
+        {
+          "type": "stack",
+          "groupby": ["year"],
+          "sort": {
+            "field": "insect_group",
+            "order": "ascending"
+          },
+          "field": "records",
+          "offset": "center",
+          "as": ["y0", "y1"]
+        },
+        {
+          "type": "collect",
+          "sort": {
+            "field": "year",
+            "order": "ascending"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "annual_totals",
+      "source": "table",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["year"],
+          "fields": ["records"],
+          "ops": ["sum"],
+          "as": ["total_records"]
+        },
+        {
+          "type": "window",
+          "sort": {
+            "field": "total_records",
+            "order": "descending"
+          },
+          "ops": ["row_number"],
+          "as": ["peak_rank"]
+        },
+        {
+          "type": "filter",
+          "expr": "datum.peak_rank === 1"
+        }
+      ]
+    }
+  ],
+
+  "signals": [
+    {
+      "name": "hoverData",
+      "value": null,
+      "on": [
+        {
+          "events": "@streamArea:mousemove",
+          "update": "datum"
+        },
+        {
+          "events": "@streamArea:mouseout",
+          "update": "null"
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "domain": [1980, 2025],
+      "range": "width",
+      "nice": false,
+      "zero": false
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "domain": {
+        "data": "table",
+        "fields": ["y0", "y1"]
+      },
+      "range": "height",
+      "nice": true,
+      "zero": false
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": [
+        "Butterflies & Moths",
+        "Bees, Ants & Wasps",
+        "Dragonflies & Damselflies",
+        "Beetles"
+      ],
+      "range": [
+        "#D9A441",
+        "#3E7F58",
+        "#4C8FB8",
+        "#A67DB8"
+      ]
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "x",
+      "title": "Year",
+      "values": [
+        1980,
+        1985,
+        1990,
+        1995,
+        2000,
+        2005,
+        2010,
+        2015,
+        2020,
+        2025
+      ],
+      "format": "d",
+      "labelAngle": 0,
+      "labelFontSize": 12,
+      "labelColor": "#354B40",
+      "titleColor": "#354B40",
+      "tickColor": "#D6DED6",
+      "domain": false,
+      "grid": false
+    }
+  ],
+
+  "legends": [
+    {
+      "fill": "color",
+      "orient": "bottom",
+      "direction": "horizontal",
+      "title": "Insect group",
+      "labelFontSize": 12,
+      "titleFontSize": 12,
+      "symbolType": "square",
+      "offset": 12
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "group",
+      "from": {
+        "facet": {
+          "name": "series",
+          "data": "table",
+          "groupby": "insect_group"
+        }
+      },
+      "marks": [
+        {
+          "type": "area",
+          "name": "streamArea",
+          "from": {
+            "data": "series"
+          },
+          "encode": {
+            "enter": {
+              "interpolate": {
+                "value": "monotone"
+              },
+              "fill": {
+                "scale": "color",
+                "field": "insect_group"
+              },
+              "fillOpacity": {
+                "value": 0.95
+              },
+              "tooltip": {
+                "signal": "{'Insect group': datum.insect_group, 'Year': datum.year, 'Recorded observations': format(datum.records, ',')}"
+              }
+            },
+            "update": {
+              "x": {
+                "scale": "x",
+                "field": "year"
+              },
+              "y": {
+                "scale": "y",
+                "field": "y0"
+              },
+              "y2": {
+                "scale": "y",
+                "field": "y1"
+              },
+              "fillOpacity": {
+                "signal": "hoverData && hoverData.insect_group === datum.insect_group ? 1 : 0.95"
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "type": "rule",
+      "from": {
+        "data": "annual_totals"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "year"
+          },
+          "y": {
+            "value": 0
+          },
+          "y2": {
+            "signal": "height"
+          },
+          "stroke": {
+            "value": "#173D32"
+          },
+          "strokeDash": {
+            "value": [5, 5]
+          },
+          "strokeOpacity": {
+            "value": 0.65
+          },
+          "strokeWidth": {
+            "value": 1.6
+          },
+          "tooltip": {
+            "signal": "{'Peak recording year': datum.year, 'Combined observations': format(datum.total_records, ',')}"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {
+        "data": "annual_totals"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "signal": "width - 12"
+          },
+          "y": {
+            "value": 21
+          },
+          "text": {
+            "signal": "'PEAK YEAR: ' + datum.year + ' (' + format(datum.total_records, ',') + ' records)'"
+          },
+          "align": {
+            "value": "right"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 13
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#173D32"
+          },
+          "stroke": {
+            "value": "#FFFFFF"
+          },
+          "strokeWidth": {
+            "value": 4
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {
+            "value": 4
+          },
+          "y": {
+            "value": -23
+          },
+          "text": {
+            "value": "Wider bands = more observation records, not necessarily more insects"
+          },
+          "align": {
+            "value": "left"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "#526B5B"
+          }
+        }
+      }
+    }
+  ],
+
+  "config": {
+    "background": "white"
+  }
+}

@@ -1,0 +1,411 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Annotated Sankey diagram connecting Melbourne insect survey groups with green spaces.",
+  "width": 940,
+  "height": 650,
+  "padding": {
+    "left": 15,
+    "right": 15,
+    "top": 90,
+    "bottom": 40
+  },
+  "background": "white",
+
+  "title": {
+    "text": "Which Insect Groups Are Found Across Melbourne's Green Spaces?",
+    "subtitle": "Connections between insect orders and survey locations",
+    "anchor": "start",
+    "fontSize": 19,
+    "subtitleFontSize": 12,
+    "color": "#173D32",
+    "subtitleColor": "#526B5B",
+    "offset": 18
+  },
+
+  "signals": [
+    {"name": "nodeWidth", "value": 18},
+    {"name": "leftX", "value": 145},
+    {"name": "rightX", "value": 715}
+  ],
+
+  "data": [
+    {
+      "name": "records",
+      "url": "data/insect-records-in-the-city-of-melbourne-from-little-things-that-run-the-city.csv",
+      "format": {"type": "csv"},
+      "transform": [
+        {
+          "type": "formula",
+          "as": "insect_group",
+          "expr": "datum.order === 'COLEOPTERA' ? 'Beetles' : datum.order === 'DIPTERA' ? 'Flies' : datum.order === 'HEMIPTERA' ? 'True Bugs' : datum.order === 'HYMENOPTERA' ? 'Bees, Ants & Wasps' : null"
+        },
+        {
+          "type": "formula",
+          "as": "location_name",
+          "expr": "datum.location"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.insect_group != null && datum.location_name != null && datum.location_name !== ''"
+        }
+      ]
+    },
+
+    {
+      "name": "edges",
+      "source": "records",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": [
+            "insect_group",
+            "location_name"
+          ],
+          "ops": ["count"],
+          "as": ["value"]
+        }
+      ]
+    },
+
+    {
+      "name": "source_nodes",
+      "source": "edges",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["insect_group"],
+          "fields": ["value"],
+          "ops": ["sum"],
+          "as": ["total"]
+        },
+        {
+          "type": "formula",
+          "as": "sort_index",
+          "expr": "datum.insect_group === 'Beetles' ? 1 : datum.insect_group === 'Flies' ? 2 : datum.insect_group === 'True Bugs' ? 3 : 4"
+        },
+        {
+          "type": "stack",
+          "field": "total",
+          "sort": {
+            "field": "sort_index",
+            "order": "ascending"
+          },
+          "as": ["y0", "y1"]
+        },
+        {
+          "type": "formula",
+          "as": "yc",
+          "expr": "(datum.y0 + datum.y1) / 2"
+        }
+      ]
+    },
+
+    {
+      "name": "target_nodes",
+      "source": "edges",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["location_name"],
+          "fields": ["value"],
+          "ops": ["sum"],
+          "as": ["total"]
+        },
+        {
+          "type": "stack",
+          "field": "total",
+          "sort": {
+            "field": "location_name",
+            "order": "ascending"
+          },
+          "as": ["y0", "y1"]
+        },
+        {
+          "type": "formula",
+          "as": "yc",
+          "expr": "(datum.y0 + datum.y1) / 2"
+        }
+      ]
+    },
+
+    {
+      "name": "links",
+      "source": "edges",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "source_nodes",
+          "key": "insect_group",
+          "fields": ["insect_group"],
+          "values": ["y0", "sort_index"],
+          "as": ["source_start", "source_order"]
+        },
+        {
+          "type": "stack",
+          "groupby": ["insect_group"],
+          "sort": {
+            "field": "location_name",
+            "order": "ascending"
+          },
+          "field": "value",
+          "as": ["source_y0", "source_y1"]
+        },
+        {
+          "type": "formula",
+          "as": "source_center",
+          "expr": "datum.source_start + (datum.source_y0 + datum.source_y1) / 2"
+        },
+        {
+          "type": "lookup",
+          "from": "target_nodes",
+          "key": "location_name",
+          "fields": ["location_name"],
+          "values": ["y0"],
+          "as": ["target_start"]
+        },
+        {
+          "type": "stack",
+          "groupby": ["location_name"],
+          "sort": {
+            "field": "source_order",
+            "order": "ascending"
+          },
+          "field": "value",
+          "as": ["target_y0", "target_y1"]
+        },
+        {
+          "type": "formula",
+          "as": "target_center",
+          "expr": "datum.target_start + (datum.target_y0 + datum.target_y1) / 2"
+        },
+        {
+          "type": "linkpath",
+          "orient": "horizontal",
+          "shape": "diagonal",
+          "sourceX": {"expr": "leftX + nodeWidth"},
+          "sourceY": {
+            "expr": "scale('y', datum.source_center)"
+          },
+          "targetX": {"expr": "rightX"},
+          "targetY": {
+            "expr": "scale('y', datum.target_center)"
+          },
+          "as": "path"
+        }
+      ]
+    },
+
+    {
+      "name": "strongest_link",
+      "source": "links",
+      "transform": [
+        {
+          "type": "window",
+          "sort": {
+            "field": "value",
+            "order": "descending"
+          },
+          "ops": ["row_number"],
+          "as": ["rank"]
+        },
+        {
+          "type": "filter",
+          "expr": "datum.rank === 1"
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "y",
+      "type": "linear",
+      "domain": {
+        "data": "source_nodes",
+        "fields": ["y0", "y1"]
+      },
+      "range": "height",
+      "zero": true,
+      "nice": false
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": [
+        "Beetles",
+        "Flies",
+        "True Bugs",
+        "Bees, Ants & Wasps"
+      ],
+      "range": [
+        "#A67DB8",
+        "#4C8FB8",
+        "#D9A441",
+        "#3E7F58"
+      ]
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "path",
+      "from": {"data": "links"},
+      "encode": {
+        "enter": {
+          "fill": {"value": null},
+          "stroke": {
+            "scale": "color",
+            "field": "insect_group"
+          },
+          "strokeOpacity": {"value": 0.45},
+          "tooltip": {
+            "signal": "{'Insect group': datum.insect_group, 'Location': datum.location_name, 'Records': format(datum.value, ',')}"
+          }
+        },
+        "update": {
+          "path": {"field": "path"},
+          "strokeWidth": {
+            "signal": "max(1, abs(scale('y', datum.value) - scale('y', 0)))"
+          }
+        },
+        "hover": {
+          "strokeOpacity": {"value": 0.85}
+        }
+      }
+    },
+
+    {
+      "type": "path",
+      "from": {"data": "strongest_link"},
+      "encode": {
+        "enter": {
+          "path": {"field": "path"},
+          "fill": {"value": null},
+          "stroke": {
+            "scale": "color",
+            "field": "insect_group"
+          },
+          "strokeOpacity": {"value": 0.9},
+          "strokeWidth": {
+            "signal": "max(2, abs(scale('y', datum.value) - scale('y', 0))) + 2"
+          },
+          "tooltip": {
+            "signal": "{'Strongest connection': datum.insect_group + ' to ' + datum.location_name, 'Records': format(datum.value, ',')}"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "rect",
+      "from": {"data": "source_nodes"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "leftX"},
+          "x2": {"signal": "leftX + nodeWidth"},
+          "y": {"scale": "y", "field": "y1"},
+          "y2": {"scale": "y", "field": "y0"},
+          "fill": {
+            "scale": "color",
+            "field": "insect_group"
+          },
+          "stroke": {"value": "white"},
+          "tooltip": {
+            "signal": "{'Insect group': datum.insect_group, 'Total records': format(datum.total, ',')}"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {"data": "source_nodes"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "leftX - 10"},
+          "y": {"scale": "y", "field": "yc"},
+          "align": {"value": "right"},
+          "baseline": {"value": "middle"},
+          "fontSize": {"value": 13},
+          "fontWeight": {"value": "bold"},
+          "fill": {"value": "#2F4B3E"},
+          "text": {"field": "insect_group"}
+        }
+      }
+    },
+
+    {
+      "type": "rect",
+      "from": {"data": "target_nodes"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "rightX"},
+          "x2": {"signal": "rightX + nodeWidth"},
+          "y": {"scale": "y", "field": "y1"},
+          "y2": {"scale": "y", "field": "y0"},
+          "fill": {"value": "#8CAFA0"},
+          "stroke": {"value": "white"},
+          "tooltip": {
+            "signal": "{'Location': datum.location_name, 'Total records': format(datum.total, ',')}"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {"data": "target_nodes"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "rightX + nodeWidth + 8"},
+          "y": {"scale": "y", "field": "yc"},
+          "align": {"value": "left"},
+          "baseline": {"value": "middle"},
+          "fontSize": {"value": 11},
+          "fill": {"value": "#2F4B3E"},
+          "text": {"field": "location_name"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {"data": "strongest_link"},
+      "encode": {
+        "enter": {
+          "x": {"value": 4},
+          "y": {"value": -46},
+          "text": {
+            "signal": "'STRONGEST CONNECTION: ' + datum.insect_group + ' to ' + datum.location_name"
+          },
+          "align": {"value": "left"},
+          "fontSize": {"value": 13},
+          "fontWeight": {"value": "bold"},
+          "fill": {"value": "#173D32"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {"data": "strongest_link"},
+      "encode": {
+        "enter": {
+          "x": {"value": 4},
+          "y": {"value": -25},
+          "text": {
+            "signal": "format(datum.value, ',') + ' survey records in this connection | Wider bands indicate more records'"
+          },
+          "align": {"value": "left"},
+          "fontSize": {"value": 12},
+          "fill": {"value": "#526B5B"}
+        }
+      }
+    }
+  ],
+
+  "config": {
+    "background": "white"
+  }
+}

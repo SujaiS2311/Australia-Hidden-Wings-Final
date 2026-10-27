@@ -1,0 +1,964 @@
+
+/* ==========================================
+   AUSTRALIA'S HIDDEN WINGS
+   FIT3179 DATA VISUALISATION 2
+
+
+
+   ========================================== */
+
+
+/* ==========================================
+   1. GLOBAL DESIGN VARIABLES
+   ========================================== */
+
+:root {
+    --page-bg: #F8F7F2;
+    --card-bg: #FFFFFF;
+    --soft-bg: #F5F8F4;
+
+    --green-dark: #173D32;
+    --green-heading: #2E5947;
+    --green-medium: #4B9E97;
+
+    --text-primary: #243B30;
+    --text-secondary: #435A4D;
+    --text-muted: #65766B;
+
+    --border-colour: #E3EAE3;
+
+    --butterfly-colour: #D9A441;
+    --beetle-colour: #A67DB8;
+    --bee-colour: #3E7F58;
+    --dragonfly-colour: #4C8FB8;
+
+    --content-width: 1080px;
+    --reading-width: 760px;
+
+    --card-radius: 14px;
+    --chart-spacing: 22px;
+}
+
+
+/* ==========================================
+   2. GENERAL WEBSITE STYLING
+   ========================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    overflow-x: hidden;
+
+    background-color: var(--page-bg);
+    color: var(--text-primary);
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    font-size: 16px;
+    line-height: 1.65;
+
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+a {
+    color: #25684F;
+    text-underline-offset: 3px;
+}
+
+a:hover {
+    color: var(--green-dark);
+}
+
+:focus-visible {
+    outline: 3px solid #D9A441;
+    outline-offset: 3px;
+}
+
+
+/* ==========================================
+   3. WEBSITE HEADER
+   ========================================== */
+
+header {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    background-color: var(--green-medium);
+    color: #FFFFFF;
+
+    text-align: center;
+    padding: 72px 32px 68px;
+}
+
+header h1 {
+    position: relative;
+    z-index: 2;
+
+    max-width: 900px;
+    margin: 0 auto 14px;
+
+    font-size: clamp(34px, 4vw, 48px);
+    font-weight: 700;
+    line-height: 1.15;
+
+    letter-spacing: -0.035em;
+}
+
+header h2 {
+    position: relative;
+    z-index: 2;
+
+    margin: 0 auto 22px;
+
+    color: #F3F8F4;
+    font-size: clamp(19px, 2.2vw, 25px);
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+header p {
+    position: relative;
+    z-index: 2;
+
+    max-width: 710px;
+    margin: 0 auto;
+
+    color: #F3F8F4;
+    font-size: 16px;
+    line-height: 1.75;
+}
+
+
+/* ==========================================
+   4. DECORATIVE BUTTERFLY
+   ========================================== */
+
+.header-butterfly {
+    position: absolute;
+
+    top: 18px;
+    right: 24px;
+
+    width: 185px;
+    max-width: 25%;
+    height: auto;
+
+    opacity: 0.95;
+
+    transform: rotate(-8deg);
+
+    filter: drop-shadow(
+        0 8px 15px rgba(0, 0, 0, 0.15)
+    );
+
+    pointer-events: none;
+    z-index: 1;
+}
+
+
+/* ==========================================
+   5. MAIN PAGE LAYOUT
+   ========================================== */
+
+main {
+    width: min(
+        var(--content-width),
+        calc(100% - 48px)
+    );
+
+    margin: 0 auto;
+    padding: 36px 0 18px;
+}
+
+
+/* ==========================================
+   6. CHAPTER CARDS
+   ========================================== */
+
+.chart-section {
+    width: 100%;
+    min-width: 0;
+
+    background: var(--card-bg);
+
+    padding: 38px 42px;
+
+    border: 1px solid #ECF0E9;
+    border-radius: var(--card-radius);
+
+    margin-bottom: 28px;
+
+    box-shadow:
+        0 5px 22px rgba(24, 55, 38, 0.045);
+}
+
+.chart-section h2 {
+    max-width: var(--reading-width);
+
+    margin: 0 0 20px;
+
+    color: var(--green-dark);
+    font-size: clamp(25px, 2.6vw, 30px);
+    font-weight: 700;
+    line-height: 1.3;
+
+    letter-spacing: -0.025em;
+}
+
+.chart-section h3 {
+    max-width: var(--reading-width);
+
+    margin: 30px 0 12px;
+
+    color: var(--green-heading);
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.4;
+
+    letter-spacing: -0.01em;
+}
+
+.chart-section p {
+    max-width: var(--reading-width);
+
+    margin: 0 0 14px;
+
+    color: var(--text-secondary);
+    font-size: 15.5px;
+    line-height: 1.7;
+}
+
+.chart-section p:last-child {
+    margin-bottom: 0;
+}
+
+.chart-section strong {
+    color: var(--green-dark);
+    font-weight: 700;
+}
+
+.chart-section ul {
+    max-width: var(--reading-width);
+    margin: 12px 0 22px;
+    padding-left: 25px;
+}
+
+.chart-section li {
+    margin-bottom: 8px;
+    line-height: 1.65;
+}
+
+
+/* ==========================================
+   7. ALL CHART CONTAINERS
+
+   Uses the IDs already in your index.html.
+   No changes to your JavaScript are required.
+   ========================================== */
+
+#insect_bar_chart,
+#insect_sunburst,
+#insect_map,
+#insect_point_map,
+#insect_seasonal_heatmap,
+#insect_rainfall_chart,
+#insect_rainfall_wet_dry,
+#insect_streamgraph,
+#melbourne_insect_sankey,
+#insect_threatened_map,
+#insect_conservation_chart {
+    width: 100%;
+    min-width: 0;
+
+    margin: var(--chart-spacing) auto;
+
+    text-align: center;
+}
+
+/* Allow Vega containers to fit available space. */
+
+#insect_bar_chart .vega-embed,
+#insect_sunburst .vega-embed,
+#insect_map .vega-embed,
+#insect_point_map .vega-embed,
+#insect_seasonal_heatmap .vega-embed,
+#insect_rainfall_chart .vega-embed,
+#insect_rainfall_wet_dry .vega-embed,
+#insect_streamgraph .vega-embed,
+#melbourne_insect_sankey .vega-embed,
+#insect_threatened_map .vega-embed,
+#insect_conservation_chart .vega-embed {
+    max-width: 100%;
+}
+
+/* Scale SVG charts down to fit smaller screens. */
+
+#insect_bar_chart svg,
+#insect_sunburst svg,
+#insect_map svg,
+#insect_point_map svg,
+#insect_seasonal_heatmap svg,
+#insect_rainfall_chart svg,
+#insect_rainfall_wet_dry svg,
+#insect_streamgraph svg,
+#melbourne_insect_sankey svg,
+#insect_threatened_map svg,
+#insect_conservation_chart svg {
+    display: block;
+
+    max-width: 100%;
+    height: auto;
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Consistent white backgrounds for all diagrams. */
+
+.vega-embed {
+    background: #FFFFFF;
+}
+
+/* Make hover details more obvious. */
+
+.vega-embed summary {
+    cursor: pointer;
+}
+
+
+/* ==========================================
+   8. CHART WRAPPER CONTAINERS
+   ========================================== */
+
+.sunburst-container,
+.streamgraph-container,
+.sankey-container,
+.rainfall-comparison-container {
+    width: 100%;
+    min-width: 0;
+
+    margin: 16px 0 8px;
+    padding: 8px 0;
+
+    text-align: center;
+
+    background: #FFFFFF;
+}
+
+/*
+
+*/
+
+
+/* ==========================================
+   9. CHAPTER 2: TWO MAPS
+   ========================================== */
+
+.map-comparison-section {
+    width: 100%;
+}
+
+.two-chart-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+
+    margin: 26px 0;
+    align-items: stretch;
+}
+
+.chart-card {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+
+    background: var(--soft-bg);
+
+    border: 1px solid var(--border-colour);
+    border-radius: 12px;
+
+    padding: 20px;
+}
+
+.chart-card h3 {
+    margin: 0 0 12px;
+
+    color: var(--green-dark);
+    font-size: 19px;
+    line-height: 1.35;
+}
+
+.chart-card p {
+    font-size: 14.5px;
+    line-height: 1.65;
+    margin-bottom: 12px;
+}
+
+.map-frame {
+    width: 100%;
+    min-width: 0;
+
+    margin: 12px 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #FFFFFF;
+    border-radius: 8px;
+}
+
+.map-frame .vega-embed {
+    max-width: 100%;
+}
+
+.chart-card .chart-note {
+    margin-top: auto;
+}
+
+
+/* ==========================================
+   10. SOURCE AND METHODOLOGY NOTES
+   ========================================== */
+
+.chart-section .chart-note {
+    max-width: 100%;
+
+    margin: 12px 0 22px;
+    padding: 12px 0 0;
+
+    border-top: 1px solid var(--border-colour);
+
+    color: var(--text-muted);
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+.chart-section .chart-note strong {
+    color: #4B6656;
+}
+
+.chart-section .chart-note:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ==========================================
+   11. STORY INSIGHT / KEY TAKEAWAY
+   ========================================== */
+
+.story-insight {
+    max-width: 100%;
+
+    margin: 24px 0;
+    padding: 20px 24px;
+
+    background: #F2F6F0;
+
+    border-left: 4px solid #4C9877;
+    border-radius: 8px;
+}
+
+.story-insight h3 {
+    margin: 0 0 10px;
+
+    color: var(--green-dark);
+    font-size: 19px;
+}
+
+.story-insight p {
+    max-width: 100%;
+
+    margin: 0 0 10px;
+
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
+.story-insight p:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ==========================================
+   12. OPTIONAL CHART ANNOTATION STYLES
+
+   Ready for later HTML annotations
+   next to individual charts.
+   ========================================== */
+
+.chart-annotation {
+    max-width: var(--reading-width);
+
+    margin: 16px 0;
+    padding: 14px 18px;
+
+    background: #F7FAF6;
+
+    border-left: 3px solid #4B9E97;
+    border-radius: 6px;
+}
+
+.chart-annotation h4 {
+    margin: 0 0 7px;
+
+    color: var(--green-dark);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.chart-annotation p {
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.chart-key-finding {
+    max-width: var(--reading-width);
+
+    margin: 18px 0;
+    padding: 18px 20px;
+
+    background: #F3F7F1;
+
+    border: 1px solid #DCE8DD;
+    border-radius: 10px;
+}
+
+.chart-key-finding h4 {
+    margin: 0 0 8px;
+
+    color: var(--green-dark);
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.chart-key-finding p {
+    margin-bottom: 0;
+}
+
+
+/* ==========================================
+   13. WEBSITE FOOTER
+   ========================================== */
+
+footer {
+    background: var(--green-dark);
+    color: #E4E8DF;
+
+    text-align: center;
+
+    padding: 30px 20px;
+    margin-top: 10px;
+}
+
+footer p {
+    max-width: 760px;
+
+    margin: 5px auto;
+
+    color: #E4E8DF;
+    font-size: 13.5px;
+    line-height: 1.7;
+}
+
+
+/* ==========================================
+   14. SMALL LAPTOPS AND TABLETS
+   ========================================== */
+
+@media (max-width: 1000px) {
+
+    main {
+        width: calc(100% - 36px);
+        padding-top: 28px;
+    }
+
+    .chart-section {
+        padding: 30px;
+        margin-bottom: 24px;
+    }
+
+    .two-chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card {
+        padding: 22px;
+    }
+
+    .header-butterfly {
+        width: 125px;
+        top: 15px;
+        right: 12px;
+        opacity: 0.8;
+    }
+}
+
+
+/* ==========================================
+   15. MOBILE SCREENS
+   ========================================== */
+
+@media (max-width: 600px) {
+
+    header {
+        padding: 52px 20px 46px;
+    }
+
+    header h1 {
+        font-size: 32px;
+    }
+
+    header h2 {
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    header p {
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+    .header-butterfly {
+        display: none;
+    }
+
+    main {
+        width: calc(100% - 24px);
+        padding: 18px 0;
+    }
+
+    .chart-section {
+        padding: 22px 16px;
+        margin-bottom: 18px;
+        border-radius: 10px;
+    }
+
+    .chart-section h2 {
+        font-size: 23px;
+        margin-bottom: 16px;
+    }
+
+    .chart-section h3 {
+        font-size: 18px;
+        margin-top: 24px;
+        margin-bottom: 10px;
+    }
+
+    .chart-section p {
+        font-size: 14px;
+        line-height: 1.65;
+        margin-bottom: 12px;
+    }
+
+    .two-chart-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin: 18px 0;
+    }
+
+    .chart-card {
+        padding: 16px;
+    }
+
+    .chart-card h3 {
+        font-size: 17px;
+    }
+
+    .chart-card p {
+        font-size: 13.5px;
+    }
+
+    .chart-section .chart-note {
+        font-size: 11.5px;
+        line-height: 1.6;
+        margin-top: 10px;
+    }
+
+    .story-insight {
+        padding: 16px 18px;
+        margin: 18px 0;
+    }
+
+    .story-insight h3 {
+        font-size: 17px;
+    }
+
+    .chart-annotation,
+    .chart-key-finding {
+        padding: 14px 16px;
+    }
+
+    #insect_bar_chart,
+    #insect_sunburst,
+    #insect_map,
+    #insect_point_map,
+    #insect_seasonal_heatmap,
+    #insect_rainfall_chart,
+    #insect_rainfall_wet_dry,
+    #insect_streamgraph,
+    #melbourne_insect_sankey,
+    #insect_threatened_map,
+    #insect_conservation_chart {
+        margin: 16px auto;
+    }
+
+    footer {
+        padding: 24px 16px;
+    }
+
+    footer p {
+        font-size: 12px;
+    }
+}
+
+
+/* ==========================================
+   16. REDUCED MOTION ACCESSIBILITY
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+
+
+/* */
+body,
+header,
+header h1,
+header h2,
+.chart-section h2,
+.chart-section h3 {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Improved green header */
+header {
+    background: linear-gradient(
+        135deg,
+        #173D32 0%,
+        #286B5B 55%,
+        #4B9E97 100%
+    );
+
+    padding-top: 80px;
+    padding-bottom: 75px;
+}
+
+/* Keep original heading style */
+header h1 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+/* Softer chapter cards */
+.chart-section {
+    background: #FFFFFF;
+    border: 1px solid #E8EEE7;
+    border-radius: 16px;
+
+    box-shadow:
+        0 5px 24px rgba(23, 61, 50, 0.05);
+
+    padding: clamp(26px, 4vw, 42px);
+    margin-bottom: 28px;
+}
+
+/* Cleaner spacing */
+.chart-section h2 {
+    margin-bottom: 18px;
+}
+
+.chart-section h3 {
+    margin-top: 28px;
+    margin-bottom: 12px;
+}
+
+.chart-section p {
+    max-width: 760px;
+    line-height: 1.7;
+}
+
+/* Subtle card hover effect */
+.chart-section {
+    transition:
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
+}
+
+.chart-section:hover {
+    box-shadow:
+        0 10px 30px rgba(23, 61, 50, 0.075);
+}
+
+/* Refined map cards */
+.chart-card {
+    background: #F8FAF7;
+    border: 1px solid #E5ECE4;
+    border-radius: 12px;
+}
+
+/* Consistent chart backgrounds */
+.vega-embed {
+    background: #FFFFFF;
+}
+
+/* Subtle insight styling */
+.story-insight {
+    background: #F3F7F1;
+    border-left: 3px solid #4B9E97;
+    border-radius: 9px;
+}
+
+/* Keep charts responsive */
+.vega-embed,
+.vega-embed svg {
+    max-width: 100%;
+}
+
+/* Small screens */
+@media (max-width: 600px) {
+    header {
+        padding: 60px 20px;
+    }
+
+    .chart-section {
+        padding: 22px 17px;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .chart-section {
+        transition: none;
+    }
+}
+/* ==========================================
+   DECORATIVE SIDE INSECTS
+   ========================================== */
+
+.side-insects {
+    pointer-events: none;
+}
+
+.side-insect {
+    position: fixed;
+    z-index: 2;
+    width: 140px;
+    height: auto;
+    opacity: 0.95;
+
+    filter:
+        drop-shadow(0 10px 18px rgba(0, 0, 0, 0.18))
+        drop-shadow(0 3px 6px rgba(0, 0, 0, 0.10));
+
+    transform-style: preserve-3d;
+}
+
+/* LEFT TOP */
+.insect-left-top {
+    left: 18px;
+    top: 180px;
+    transform: rotate(-12deg);
+}
+
+/* RIGHT MIDDLE */
+.insect-right-mid {
+    right: 18px;
+    top: 48%;
+    transform: translateY(-50%) rotate(10deg);
+    width: 150px;
+}
+
+/* LEFT BOTTOM */
+.insect-left-bottom {
+    left: 20px;
+    bottom: 90px;
+    transform: rotate(8deg);
+    width: 130px;
+}
+
+/* Make them sit behind main content a bit */
+header,
+main,
+footer {
+    position: relative;
+    z-index: 3;
+}
+
+/* Optional: soften them a bit so they don't distract */
+.side-insect {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Smaller laptop screens */
+@media (max-width: 1200px) {
+    .side-insect {
+        width: 110px;
+        opacity: 0.88;
+    }
+
+    .insect-right-mid {
+        width: 120px;
+    }
+
+    .insect-left-bottom {
+        width: 105px;
+    }
+}
+
+/* Tablets */
+@media (max-width: 900px) {
+    .side-insect {
+        width: 85px;
+        opacity: 0.8;
+    }
+
+    .insect-right-mid {
+        width: 95px;
+    }
+
+    .insect-left-bottom {
+        width: 80px;
+    }
+}
+

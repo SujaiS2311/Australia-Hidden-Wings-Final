@@ -1,0 +1,150 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": {
+    "text": "Where Are Australia's Threatened Insects Listed?",
+    "subtitle": "Government-listed threatened insect taxa by state or territory",
+    "fontSize": 18,
+    "anchor": "start",
+    "subtitleFontSize": 12
+  },
+  "width": 580,
+  "height": 400,
+  "projection": {
+    "type": "mercator"
+  },
+  "layer": [
+    {
+      "data": {
+        "url": "data/states.geojson",
+        "format": {
+          "type": "json",
+          "property": "features"
+        }
+      },
+      "mark": {
+        "type": "geoshape",
+        "fill": "#E8F1EA",
+        "stroke": "#688C7C",
+        "strokeWidth": 0.8
+      },
+      "encoding": {
+        "tooltip": [
+          {
+            "field": "properties.STATE_NAME",
+            "type": "nominal",
+            "title": "State"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "url": "data/threatened_species.csv"
+      },
+      "transform": [
+        {
+          "filter": "datum.Class === 'Insecta'"
+        },
+        {
+          "fold": [
+            "ACT",
+            "NSW",
+            "NT",
+            "QLD",
+            "SA",
+            "TAS",
+            "VIC",
+            "WA"
+          ],
+          "as": [
+            "state",
+            "presence"
+          ]
+        },
+        {
+          "filter": "datum.presence === 'Yes'"
+        },
+        {
+          "aggregate": [
+            {
+              "op": "count",
+              "as": "record_count"
+            }
+          ],
+          "groupby": [
+            "state",
+            "Scientific Name"
+          ]
+        },
+        {
+          "aggregate": [
+            {
+              "op": "count",
+              "as": "threatened_taxa"
+            }
+          ],
+          "groupby": [
+            "state"
+          ]
+        },
+        {
+          "calculate": "datum.state === 'NSW' ? 147 : datum.state === 'VIC' ? 144.5 : datum.state === 'QLD' ? 145 : datum.state === 'SA' ? 135 : datum.state === 'WA' ? 121 : datum.state === 'TAS' ? 146.5 : datum.state === 'NT' ? 133 : 149.1",
+          "as": "longitude"
+        },
+        {
+          "calculate": "datum.state === 'NSW' ? -32.2 : datum.state === 'VIC' ? -37 : datum.state === 'QLD' ? -22 : datum.state === 'SA' ? -30 : datum.state === 'WA' ? -26 : datum.state === 'TAS' ? -42 : datum.state === 'NT' ? -19 : -35.3",
+          "as": "latitude"
+        }
+      ],
+      "mark": {
+        "type": "circle",
+        "color": "#B84C40",
+        "opacity": 0.82,
+        "stroke": "#FFFFFF",
+        "strokeWidth": 1.5
+      },
+      "encoding": {
+        "longitude": {
+          "field": "longitude",
+          "type": "quantitative"
+        },
+        "latitude": {
+          "field": "latitude",
+          "type": "quantitative"
+        },
+        "size": {
+          "field": "threatened_taxa",
+          "type": "quantitative",
+          "title": "Listed threatened taxa",
+          "scale": {
+            "type": "sqrt",
+            "range": [100, 2500]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "state",
+            "type": "nominal",
+            "title": "State or territory"
+          },
+          {
+            "field": "threatened_taxa",
+            "type": "quantitative",
+            "title": "Listed insect taxa",
+            "format": ","
+          }
+        ]
+      }
+    }
+  ],
+  "config": {
+    "view": {
+      "stroke": null
+    },
+    "legend": {
+      "titleFontSize": 12,
+      "labelFontSize": 11
+    }
+  }
+}

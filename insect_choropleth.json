@@ -1,0 +1,106 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Map of Australian insect observation records by state, 2023–2025.",
+  "background": "white",
+  "width": 290,
+  "height": 320,
+
+  "title": {
+    "text": "Where Are Insects Recorded?",
+    "subtitle": [
+      "Three insect groups combined, 2023–2025",
+      "Darker green indicates more recorded sightings"
+    ],
+    "anchor": "start",
+    "fontSize": 17,
+    "subtitleFontSize": 11,
+    "color": "#173D32",
+    "subtitleColor": "#546B5E",
+    "offset": 14
+  },
+
+  "data": {
+    "url": "data/states.geojson",
+    "format": {
+      "type": "json",
+      "property": "features"
+    }
+  },
+
+  "transform": [
+    {
+      "calculate": "datum.properties.STATE_NAME",
+      "as": "state_name"
+    },
+    {
+      "calculate": "datum.state_name === 'New South Wales' ? 'NSW' : datum.state_name === 'Victoria' ? 'VIC' : datum.state_name === 'Queensland' ? 'QLD' : datum.state_name === 'South Australia' ? 'SA' : datum.state_name === 'Western Australia' ? 'WA' : datum.state_name === 'Tasmania' ? 'TAS' : datum.state_name === 'Northern Territory' ? 'NT' : datum.state_name === 'Australian Capital Territory' ? 'ACT' : ''",
+      "as": "state_code"
+    },
+    {
+      "lookup": "state_code",
+      "from": {
+        "data": {
+          "url": "data/all_insects_state_summary.csv"
+        },
+        "key": "state",
+        "fields": [
+          "total_records",
+          "total_recorded_species"
+        ]
+      }
+    }
+  ],
+
+  "projection": {
+    "type": "mercator"
+  },
+
+  "mark": {
+    "type": "geoshape",
+    "stroke": "#FFFFFF",
+    "strokeWidth": 1
+  },
+
+  "encoding": {
+    "color": {
+      "field": "total_records",
+      "type": "quantitative",
+      "title": "Recorded sightings",
+      "scale": {
+        "scheme": "greens"
+      },
+      "legend": {
+        "orient": "bottom",
+        "direction": "horizontal",
+        "gradientLength": 175,
+        "gradientThickness": 11,
+        "titleFontSize": 11,
+        "labelFontSize": 10,
+        "format": "~s"
+      }
+    },
+    "tooltip": [
+      {
+        "field": "state_name",
+        "title": "State or territory"
+      },
+      {
+        "field": "total_records",
+        "title": "Recorded sightings",
+        "format": ","
+      },
+      {
+        "field": "total_recorded_species",
+        "title": "Recorded species names",
+        "format": ","
+      }
+    ]
+  },
+
+  "config": {
+    "view": {
+      "stroke": null
+    }
+  }
+}

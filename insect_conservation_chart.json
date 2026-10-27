@@ -1,0 +1,156 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+
+  "title": {
+    "text": "Which Australian Insects Are at Risk?",
+    "subtitle": [
+      "Threatened insect entries matched between",
+      "Australian Government SPRAT and the ALA checklist"
+    ],
+    "fontSize": 19,
+    "subtitleFontSize": 12,
+    "anchor": "start",
+    "color": "#173D32",
+    "offset": 18
+  },
+
+  "width": 650,
+  "height": 250,
+
+  "data": {
+    "url": "data/threatened_species.csv",
+    "format": {
+      "type": "csv"
+    }
+  },
+
+  "transform": [
+    {
+      "filter": "datum.Class === 'Insecta'"
+    },
+    {
+      "calculate": "datum.Genus + ' ' + datum.Species",
+      "as": "parent_species_name"
+    },
+    {
+      "lookup": "parent_species_name",
+      "from": {
+        "data": {
+          "url": "data/insect_checklist.csv",
+          "format": {
+            "type": "csv"
+          }
+        },
+        "key": "Species Name",
+        "fields": [
+          "Order"
+        ]
+      }
+    },
+    {
+      "filter": "isValid(datum.Order) && datum.Order !== ''"
+    },
+    {
+      "calculate": "datum.Order === 'Lepidoptera' ? 'Butterflies & Moths' : datum.Order === 'Hymenoptera' ? 'Bees, Ants & Wasps' : datum.Order === 'Odonata' ? 'Dragonflies & Damselflies' : datum.Order === 'Coleoptera' ? 'Beetles' : 'Other Insects'",
+      "as": "insect_group"
+    }
+  ],
+
+  "mark": {
+    "type": "bar",
+    "cornerRadiusEnd": 3
+  },
+
+  "encoding": {
+    "y": {
+      "field": "insect_group",
+      "type": "nominal",
+      "title": null,
+      "sort": [
+        "Butterflies & Moths",
+        "Bees, Ants & Wasps",
+        "Dragonflies & Damselflies",
+        "Beetles",
+        "Other Insects"
+      ],
+      "axis": {
+        "labelFontSize": 12,
+        "labelLimit": 220,
+        "labelPadding": 10
+      }
+    },
+
+    "x": {
+      "aggregate": "count",
+      "type": "quantitative",
+      "title": "Number of matched threatened-list entries",
+      "axis": {
+        "tickMinStep": 1,
+        "labelFontSize": 12,
+        "titleFontSize": 13,
+        "grid": true
+      }
+    },
+
+    "color": {
+      "field": "Threatened status",
+      "type": "nominal",
+      "title": "Level of threat",
+      "scale": {
+        "domain": [
+          "Critically Endangered",
+          "Endangered",
+          "Vulnerable",
+          "Conservation Dependent"
+        ],
+        "range": [
+          "#A72D32",
+          "#E58A35",
+          "#E3C157",
+          "#608C7B"
+        ]
+      },
+      "legend": {
+        "orient": "bottom",
+        "direction": "horizontal",
+        "labelFontSize": 11,
+        "titleFontSize": 12,
+        "symbolType": "square"
+      }
+    },
+
+    "tooltip": [
+      {
+        "field": "insect_group",
+        "type": "nominal",
+        "title": "Insect group"
+      },
+      {
+        "field": "Threatened status",
+        "type": "nominal",
+        "title": "Level of threat"
+      },
+      {
+        "aggregate": "count",
+        "type": "quantitative",
+        "title": "Number of listed entries"
+      }
+    ]
+  },
+
+  "config": {
+    "background": "white",
+    "font": "Arial",
+    "view": {
+      "stroke": null
+    },
+    "axis": {
+      "gridColor": "#E9EEE9",
+      "domain": false,
+      "tickColor": "#D6DED6",
+      "labelColor": "#354B40",
+      "titleColor": "#354B40"
+    }
+  }
+}
